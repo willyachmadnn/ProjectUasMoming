@@ -27,6 +27,7 @@ class AppBarKustom extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
       title: Text(title),
+      centerTitle: false, // Align title to the left
       actions: [
         // 1. Theme Toggle
         Obx(

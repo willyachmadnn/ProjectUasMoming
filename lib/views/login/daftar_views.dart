@@ -26,7 +26,9 @@ class TampilanDaftar extends StatelessWidget {
         child: SingleChildScrollView(
           padding: EdgeInsets.all(24),
           child: Container(
-            constraints: BoxConstraints(maxWidth: 450),
+            constraints: BoxConstraints(
+              maxWidth: Get.width > 600 ? 450 : Get.width * 0.9,
+            ),
             padding: EdgeInsets.all(40),
             decoration: BoxDecoration(
               color: Color(0xFFE0E5EC),
@@ -75,13 +77,21 @@ class TampilanDaftar extends StatelessWidget {
                   icon: Icons.email_outlined,
                 ),
                 SizedBox(height: 20),
-                _buildTextField(
-                  label: 'Password',
-                  hint: 'Buat password kuat',
-                  controller: passwordCtrl,
-                  icon: Icons.lock_outline,
-                  isPassword: true,
+
+                // Password Field with Visibility Toggle
+                Obx(
+                  () => _buildTextField(
+                    label: 'Password',
+                    hint: 'Buat password kuat',
+                    controller: passwordCtrl,
+                    icon: Icons.lock_outline,
+                    isPassword: true,
+                    isObscure: !authCtrl.isRegisterPasswordVisible.value,
+                    onToggleVisibility:
+                        authCtrl.toggleRegisterPasswordVisibility,
+                  ),
                 ),
+
                 SizedBox(height: 32),
                 Obx(
                   () => authCtrl.isLoading.value
@@ -128,6 +138,8 @@ class TampilanDaftar extends StatelessWidget {
     required TextEditingController controller,
     required IconData icon,
     bool isPassword = false,
+    bool isObscure = false,
+    VoidCallback? onToggleVisibility,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -155,11 +167,21 @@ class TampilanDaftar extends StatelessWidget {
           ),
           child: TextField(
             controller: controller,
-            obscureText: isPassword,
+            obscureText: isPassword ? isObscure : false,
             decoration: InputDecoration(
               hintText: hint,
               hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
               prefixIcon: Icon(icon, color: Colors.grey[500], size: 20),
+              suffixIcon: isPassword
+                  ? IconButton(
+                      icon: Icon(
+                        isObscure ? Icons.visibility : Icons.visibility_off,
+                        color: Colors.grey[500],
+                        size: 20,
+                      ),
+                      onPressed: onToggleVisibility,
+                    )
+                  : null,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,

@@ -15,10 +15,22 @@ class KontrolerAutentikasi extends GetxController {
   final RxString userName = 'User'.obs;
   final RxBool isLoading = false.obs;
 
+  // State untuk visibility password
+  final RxBool isLoginPasswordVisible = false.obs;
+  final RxBool isRegisterPasswordVisible = false.obs;
+
   @override
   void onInit() {
     super.onInit();
     checkLoginStatus();
+  }
+
+  void toggleLoginPasswordVisibility() {
+    isLoginPasswordVisible.toggle();
+  }
+
+  void toggleRegisterPasswordVisibility() {
+    isRegisterPasswordVisible.toggle();
   }
 
   void checkLoginStatus() {

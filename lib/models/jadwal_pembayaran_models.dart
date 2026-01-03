@@ -8,6 +8,7 @@ class ModelJadwalPembayaran {
   final bool isPaid;
   final String? category;
   final String? notes;
+  final String recurrence; // 'none', 'daily', 'weekly', 'monthly'
 
   ModelJadwalPembayaran({
     required this.id,
@@ -17,6 +18,7 @@ class ModelJadwalPembayaran {
     this.isPaid = false,
     this.category,
     this.notes,
+    this.recurrence = 'none',
   });
 
   factory ModelJadwalPembayaran.fromFirestore(DocumentSnapshot doc) {
@@ -29,6 +31,7 @@ class ModelJadwalPembayaran {
       isPaid: data['isPaid'] ?? false,
       category: data['category'],
       notes: data['notes'],
+      recurrence: data['recurrence'] ?? 'none',
     );
   }
 
@@ -40,6 +43,7 @@ class ModelJadwalPembayaran {
       'isPaid': isPaid,
       'category': category,
       'notes': notes,
+      'recurrence': recurrence,
     };
   }
 
@@ -51,6 +55,7 @@ class ModelJadwalPembayaran {
     bool? isPaid,
     String? category,
     String? notes,
+    String? recurrence,
   }) {
     return ModelJadwalPembayaran(
       id: id ?? this.id,
@@ -60,6 +65,7 @@ class ModelJadwalPembayaran {
       isPaid: isPaid ?? this.isPaid,
       category: category ?? this.category,
       notes: notes ?? this.notes,
+      recurrence: recurrence ?? this.recurrence,
     );
   }
 }

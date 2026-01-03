@@ -1,9 +1,10 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/jadwal_pembayaran_models.dart';
 import '../models/transaksi_models.dart';
 import '../services/jadwal_pembayaran_services.dart';
 import '../services/transaksi_services.dart';
+import '../views/widgets/snackbar_kustom.dart';
 
 class KontrolerJadwalPembayaran extends GetxController {
   final LayananJadwalPembayaran _scheduleService;
@@ -77,57 +78,27 @@ class KontrolerJadwalPembayaran extends GetxController {
   Future<void> addSchedule(ModelJadwalPembayaran schedule) async {
     try {
       await _scheduleService.addSchedule(schedule);
-      Get.snackbar(
-        'Sukses',
-        'Jadwal berhasil ditambahkan',
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-      );
+      SnackbarKustom.sukses('Sukses', 'Jadwal berhasil ditambahkan');
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Gagal menambahkan jadwal: $e',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      SnackbarKustom.error('Error', 'Gagal menambahkan jadwal: $e');
     }
   }
 
   Future<void> updateSchedule(ModelJadwalPembayaran schedule) async {
     try {
       await _scheduleService.updateSchedule(schedule);
-      Get.snackbar(
-        'Sukses',
-        'Jadwal berhasil diperbarui',
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-      );
+      SnackbarKustom.sukses('Sukses', 'Jadwal berhasil diperbarui');
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Gagal memperbarui jadwal: $e',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      SnackbarKustom.error('Error', 'Gagal memperbarui jadwal: $e');
     }
   }
 
   Future<void> deleteSchedule(String id) async {
     try {
       await _scheduleService.deleteSchedule(id);
-      Get.snackbar(
-        'Sukses',
-        'Jadwal berhasil dihapus',
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-      );
+      SnackbarKustom.sukses('Sukses', 'Jadwal berhasil dihapus');
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Gagal menghapus jadwal: $e',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      SnackbarKustom.error('Error', 'Gagal menghapus jadwal: $e');
     }
   }
 
@@ -141,27 +112,22 @@ class KontrolerJadwalPembayaran extends GetxController {
       // 2. Add to Transactions
       final transaction = ModelTransaksi(
         id: '', // Auto-generated
+        uid: FirebaseAuth.instance.currentUser?.uid ?? '',
         description: 'Pembayaran Tagihan: ${schedule.name}',
         amount: schedule.amount,
         category: schedule.category ?? 'Tagihan',
+        type: 'expense',
         date: DateTime.now(),
         isExpense: true,
       );
       await _transactionService.addTransaction(transaction);
 
-      Get.snackbar(
+      SnackbarKustom.sukses(
         'Lunas',
         'Tagihan ditandai lunas & tercatat di transaksi',
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
       );
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Gagal memproses pembayaran: $e',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      SnackbarKustom.error('Error', 'Gagal memproses pembayaran: $e');
     }
   }
 }

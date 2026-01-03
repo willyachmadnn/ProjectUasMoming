@@ -60,36 +60,46 @@ class TampilanJadwalPembayaran extends StatelessWidget {
                     ).dividerColor.withValues(alpha: 0.1),
                   ),
 
-                  // Table Header
-                  _buildTableHeader(context),
-
-                  // Table List
-                  Obx(() {
-                    if (controller.filteredSchedules.isEmpty) {
-                      return Padding(
-                        padding: EdgeInsets.all(40),
-                        child: Center(
-                          child: Text('Tidak ada jadwal pembayaran'),
-                        ),
-                      );
-                    }
-                    return ListView.separated(
-                      shrinkWrap: true,
-                      physics: NeverScrollableScrollPhysics(),
-                      itemCount: controller.filteredSchedules.length,
-                      separatorBuilder: (ctx, i) => Divider(
-                        height: 1,
-                        color: Theme.of(
-                          context,
-                        ).dividerColor.withValues(alpha: 0.1),
-                      ),
-                      itemBuilder: (ctx, i) => _buildTableRow(
-                        context,
-                        controller,
-                        controller.filteredSchedules[i],
-                      ),
-                    );
-                  }),
+                  // Table Content
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      if (constraints.maxWidth < 600) {
+                        return _buildMobileList(context, controller);
+                      } else {
+                        return Column(
+                          children: [
+                            _buildTableHeader(context),
+                            Obx(() {
+                              if (controller.filteredSchedules.isEmpty) {
+                                return Padding(
+                                  padding: EdgeInsets.all(40),
+                                  child: Center(
+                                    child: Text('Tidak ada jadwal pembayaran'),
+                                  ),
+                                );
+                              }
+                              return ListView.separated(
+                                shrinkWrap: true,
+                                physics: NeverScrollableScrollPhysics(),
+                                itemCount: controller.filteredSchedules.length,
+                                separatorBuilder: (ctx, i) => Divider(
+                                  height: 1,
+                                  color: Theme.of(
+                                    context,
+                                  ).dividerColor.withValues(alpha: 0.1),
+                                ),
+                                itemBuilder: (ctx, i) => _buildTableRow(
+                                  context,
+                                  controller,
+                                  controller.filteredSchedules[i],
+                                ),
+                              );
+                            }),
+                          ],
+                        );
+                      }
+                    },
+                  ),
 
                   // Pagination (Static for now as per image example "Page 1")
                   Padding(
@@ -134,6 +144,150 @@ class TampilanJadwalPembayaran extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildMobileList(
+    BuildContext context,
+    KontrolerJadwalPembayaran controller,
+  ) {
+    final currencyFormat = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
+    final dateFormat = DateFormat('dd MMM yyyy', 'id_ID');
+
+    return Obx(() {
+      if (controller.filteredSchedules.isEmpty) {
+        return Padding(
+          padding: EdgeInsets.all(40),
+          child: Center(child: Text('Tidak ada jadwal pembayaran')),
+        );
+      }
+      return ListView.separated(
+        shrinkWrap: true,
+        physics: NeverScrollableScrollPhysics(),
+        itemCount: controller.filteredSchedules.length,
+        separatorBuilder: (ctx, i) => SizedBox(height: 12),
+        itemBuilder: (ctx, i) {
+          final item = controller.filteredSchedules[i];
+          return Container(
+            padding: EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 4,
+                  offset: Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        item.name,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: (item.isPaid ? Colors.green : Colors.red)
+                            .withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        item.isPaid ? 'Lunas' : 'Belum Lunas',
+                        style: TextStyle(
+                          color: item.isPaid ? Colors.green : Colors.red,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Jatuh Tempo:',
+                      style: TextStyle(color: Colors.grey, fontSize: 12),
+                    ),
+                    Text(
+                      dateFormat.format(item.dueDate),
+                      style: TextStyle(fontSize: 14),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 4),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Nominal:',
+                      style: TextStyle(color: Colors.grey, fontSize: 12),
+                    ),
+                    Text(
+                      currencyFormat.format(item.amount),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    if (!item.isPaid)
+                      TextButton.icon(
+                        icon: Icon(
+                          Icons.check_box_outlined,
+                          size: 16,
+                          color: Theme.of(context).primaryColor,
+                        ),
+                        label: Text('Bayar'),
+                        onPressed: () => controller.markAsPaid(item),
+                      ),
+                    IconButton(
+                      icon: Icon(Icons.edit, size: 20, color: Colors.grey),
+                      onPressed: () => Get.dialog(
+                        DialogTambahJadwal(
+                          controller: controller,
+                          schedule: item,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.delete, size: 20, color: Colors.red),
+                      onPressed: () => controller.deleteSchedule(item.id),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    });
   }
 
   Widget _buildFilterBar(

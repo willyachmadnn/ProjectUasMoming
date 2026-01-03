@@ -17,14 +17,18 @@ class GrafikAnalisisKeuangan extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Colors based on image
+    // Colors based on user request
     final List<Color> palette = [
-      Color(0xFF2196F3), // Blue
-      Color(0xFF4CAF50), // Green
-      Color(0xFF00BCD4), // Cyan
-      Color(0xFF9C27B0), // Purple
-      Color(0xFFE91E63), // Pink
-      Color(0xFFFF9800), // Orange
+      Color(0xFF1F77B4),
+      Color(0xFFFF7F0E),
+      Color(0xFF2CA02C),
+      Color(0xFFD62728),
+      Color(0xFF9467BD),
+      Color(0xFF8C564B),
+      Color(0xFFE377C2),
+      Color(0xFF7F7F7F),
+      Color(0xFFBCBD22),
+      Color(0xFF17BECF),
     ];
 
     return Container(
@@ -77,7 +81,8 @@ class GrafikAnalisisKeuangan extends StatelessWidget {
                       ? Center(child: Text("Tidak ada data"))
                       : PieChart(
                           PieChartData(
-                            sectionsSpace: 0,
+                            pieTouchData: PieTouchData(enabled: false),
+                            sectionsSpace: 2,
                             centerSpaceRadius: 40,
                             sections: _generateSections(palette),
                           ),
@@ -112,12 +117,7 @@ class GrafikAnalisisKeuangan extends StatelessWidget {
               BarChartData(
                 alignment: BarChartAlignment.spaceAround,
                 maxY: _calculateMaxY(),
-                barTouchData: BarTouchData(
-                  enabled: true,
-                  touchTooltipData: BarTouchTooltipData(
-                    getTooltipColor: (group) => Colors.blueGrey,
-                  ),
-                ),
+                barTouchData: BarTouchData(enabled: false),
                 titlesData: FlTitlesData(
                   show: true,
                   bottomTitles: AxisTitles(
@@ -192,7 +192,6 @@ class GrafikAnalisisKeuangan extends StatelessWidget {
     int index = 0;
 
     return data.entries.map((entry) {
-      final isLarge = entry.value / total > 0.15;
       final color = palette[index % palette.length];
       index++;
 
@@ -200,9 +199,9 @@ class GrafikAnalisisKeuangan extends StatelessWidget {
         color: color,
         value: entry.value,
         title: '${(entry.value / total * 100).toStringAsFixed(0)}%',
-        radius: isLarge ? 60 : 50,
+        radius: 50,
         titleStyle: TextStyle(
-          fontSize: isLarge ? 14 : 12,
+          fontSize: 12,
           fontWeight: FontWeight.bold,
           color: Colors.white,
         ),
@@ -232,6 +231,7 @@ class GrafikAnalisisKeuangan extends StatelessWidget {
                   fontSize: 12,
                   color: Theme.of(context).textTheme.bodyMedium?.color,
                 ),
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -255,13 +255,13 @@ class GrafikAnalisisKeuangan extends StatelessWidget {
         barRods: [
           BarChartRodData(
             toY: income,
-            color: Color(0xFF4CAF50),
+            color: Color(0xFF22C55E),
             width: 12,
             borderRadius: BorderRadius.circular(2),
           ),
           BarChartRodData(
             toY: expense,
-            color: Color(0xFFF44336),
+            color: Color(0xFFEF4444),
             width: 12,
             borderRadius: BorderRadius.circular(2),
           ),

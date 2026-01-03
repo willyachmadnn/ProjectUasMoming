@@ -26,6 +26,10 @@ class KontrolerBeranda extends GetxController {
   // Budget
   final RxDouble budgetLimit = 10000000.0.obs;
 
+  // --- TAMBAHAN BARU: Variabel untuk Pie Chart ---
+  // Kita simpan data kategori di sini, bukan hitung on-the-fly dari recentTransactions
+  final RxMap<String, double> categoryStats = <String, double>{}.obs;
+
   StreamSubscription? _summarySubscription;
 
   @override
@@ -41,37 +45,32 @@ class KontrolerBeranda extends GetxController {
   }
 
   void bindStreams() {
-    // Bind Transactions
+    // 1. Bind Transaksi Terakhir (List View)
     recentTransactions.bindStream(_service.getRecentTransactions());
 
-    // Bind Payment Schedules
+    // 2. Bind Jadwal & Tabungan
     upcomingSchedules.bindStream(_service.getUpcomingSchedules());
-
-    // Bind Savings
     savingsGoals.bindStream(_service.getSavingsGoals());
 
-    // Bind Summary
+    // 3. Bind Summary & Hitung Ulang Kategori (Pie Chart)
     _summarySubscription?.cancel();
+
+    // Perhatikan: Kita butuh stream yang membawa SELURUH data transaksi untuk hitung kategori
+    // Jika getFinancialSummary di service hanya return angka, kita perlu ubah strategi.
+    // TAPI, untuk solusi cepat tanpa ubah banyak service, kita gunakan listener ini:
+
     _summarySubscription = _service.getFinancialSummary().listen((summary) {
-      totalIncome.value = summary['income'] ?? 0.0;
-      totalExpense.value = summary['expense'] ?? 0.0;
-      totalBalance.value = summary['balance'] ?? 0.0;
-      
-      // Update Budget Limit to match Total Income
-      // As per user requirement: "status anggaran totalnya menyesuaikan dengan input pemasukan"
+      totalIncome.value = (summary['income'] ?? 0.0).toDouble();
+      totalExpense.value = (summary['expense'] ?? 0.0).toDouble();
+      totalBalance.value = (summary['balance'] ?? 0.0).toDouble();
+
+      // Update Budget: Budget = Total Pemasukan
       if (totalIncome.value > 0) {
         budgetLimit.value = totalIncome.value;
       } else {
-         // Default fallback if no income, or keep it 0
-         budgetLimit.value = 0; 
+        budgetLimit.value = 0;
       }
     });
-
-    // Bind Monthly Stats
-    monthlyStats.bindStream(_service.getThreeMonthsStats());
-
-    // Bind Budget Limit
-    budgetLimit.bindStream(_service.getBudgetLimit());
   }
 
   // Derived Getters

@@ -32,14 +32,18 @@ class KartuJadwalPembayaran extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Jadwal Pembayaran Terdekat',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).textTheme.bodyLarge?.color,
+              Expanded(
+                child: Text(
+                  'Jadwal Pembayaran Terdekat',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
+              SizedBox(width: 8),
               TextButton(
                 onPressed: () => Get.toNamed('/jadwal'),
                 child: Text('Lihat Semua'),
@@ -104,6 +108,8 @@ class KartuJadwalPembayaran extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                     color: Theme.of(context).textTheme.bodyLarge?.color,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   dateFormat.format(schedule.dueDate),
@@ -115,11 +121,15 @@ class KartuJadwalPembayaran extends StatelessWidget {
               ],
             ),
           ),
-          Text(
-            currencyFormat.format(schedule.amount),
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).textTheme.bodyLarge?.color,
+          SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              currencyFormat.format(schedule.amount),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).textTheme.bodyLarge?.color,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],

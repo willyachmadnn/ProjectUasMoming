@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import '../models/transaksi_models.dart';
 import '../models/kategori_models.dart';
 import '../services/transaksi_services.dart';
+import '../views/widgets/snackbar_kustom.dart';
 
 class KontrolerTransaksi extends GetxController {
   final LayananTransaksi _service = LayananTransaksi();
@@ -62,6 +63,12 @@ class KontrolerTransaksi extends GetxController {
     isLoading.value = true;
     _transactionSubscription?.cancel();
 
+    // Reset pagination stack if starting fresh
+    if (startAfter == null) {
+      _paginationStack.clear();
+      currentPage.value = 1;
+    }
+
     _transactionSubscription = _service
         .getTransactionsStream(
           limit: limit,
@@ -77,7 +84,7 @@ class KontrolerTransaksi extends GetxController {
               return ModelTransaksi.fromFirestore(doc);
             }).toList();
 
-            // Client-side search
+            // Client-side search (filter existing list)
             if (searchQuery.value.isNotEmpty) {
               newTransactions = newTransactions
                   .where(
@@ -92,7 +99,7 @@ class KontrolerTransaksi extends GetxController {
             isLoading.value = false;
           },
           onError: (e) {
-            Get.snackbar('Error', 'Failed to load transactions: $e');
+            SnackbarKustom.error('Error', 'Failed to load transactions: $e');
             isLoading.value = false;
           },
         );
@@ -125,28 +132,23 @@ class KontrolerTransaksi extends GetxController {
   // CRUD Operations
   Future<void> addTransaction(ModelTransaksi transaction) async {
     try {
-      // isLoading.value = true; // Stream will handle loading state if needed, but for add we just wait
       await _service.addTransaction(transaction);
+
+      // --- UX IMPROVEMENT: Reset Filters to Show New Data ---
+      // 1. Force date filter to the transaction's month
+      selectedMonth.value = transaction.date;
+
+      // 2. Reset category filter to ensure visibility
+      selectedCategory.value = 'Semua Kategori';
+
+      // 3. Refresh stream
+      _bindTransactionsStream(); 
+      // -----------------------------------------------------
+
       Get.back(); // Close dialog
-      Get.snackbar(
-        'Success',
-        'Transaction added successfully',
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-      );
-      // No need to manual refresh, Stream updates automatically
-      // However, if we are on page 2, we might want to go to page 1 to see it?
-      // For now, let's keep it simple. If on page 1, it appears.
-      if (currentPage.value != 1) {
-        _resetAndBind(); // Jump to first page to see new item
-      }
+      SnackbarKustom.sukses('Sukses', 'Transaksi berhasil ditambahkan');
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to add transaction: $e',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      SnackbarKustom.error('Error', 'Gagal menambahkan transaksi: $e');
     }
   }
 
@@ -154,20 +156,10 @@ class KontrolerTransaksi extends GetxController {
     try {
       await _service.updateTransaction(transaction);
       Get.back(); // Close dialog
-      Get.snackbar(
-        'Success',
-        'Transaction updated successfully',
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-      );
-      // Stream updates automatically
+      SnackbarKustom.sukses('Sukses', 'Transaksi berhasil diperbarui');
+      _resetAndBind();
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to update transaction: $e',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      SnackbarKustom.error('Error', 'Gagal memperbarui transaksi: $e');
     }
   }
 
@@ -185,25 +177,15 @@ class KontrolerTransaksi extends GetxController {
               onPressed: () async {
                 Get.back(); // Close confirmation dialog
                 await _service.deleteTransaction(id);
-                Get.snackbar(
-                  'Success',
-                  'Transaction deleted successfully',
-                  backgroundColor: Colors.green,
-                  colorText: Colors.white,
-                );
-                // Stream updates automatically
+                SnackbarKustom.sukses('Sukses', 'Transaksi berhasil dihapus');
+                _resetAndBind();
               },
             ),
           ],
         ),
       );
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to delete transaction: $e',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      SnackbarKustom.error('Error', 'Gagal menghapus transaksi: $e');
     }
   }
 
@@ -211,19 +193,9 @@ class KontrolerTransaksi extends GetxController {
     try {
       await _service.addCategory(category);
       // No need to manual refresh as categories are streamed
-      Get.snackbar(
-        'Success',
-        'Category added successfully',
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-      );
+      SnackbarKustom.sukses('Sukses', 'Kategori berhasil ditambahkan');
     } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to add category: $e',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-      );
+      SnackbarKustom.error('Error', 'Gagal menambahkan kategori: $e');
     }
   }
 

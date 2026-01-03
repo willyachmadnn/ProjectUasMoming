@@ -25,7 +25,9 @@ class TampilanMasuk extends StatelessWidget {
         child: SingleChildScrollView(
           padding: EdgeInsets.all(24),
           child: Container(
-            constraints: BoxConstraints(maxWidth: 450),
+            constraints: BoxConstraints(
+              maxWidth: Get.width > 600 ? 450 : Get.width * 0.9,
+            ),
             padding: EdgeInsets.all(40),
             decoration: BoxDecoration(
               color: Color(0xFFE0E5EC), // Neumorphic base color
@@ -48,7 +50,8 @@ class TampilanMasuk extends StatelessWidget {
               children: [
                 // Logo & Title
                 Container(
-                  height: 200,
+                  height: Get.height * 0.25, // Responsive height
+                  constraints: BoxConstraints(maxHeight: 200, minHeight: 150),
                   width: double.infinity,
                   child: Image.asset(
                     'assets/sakuku.png',
@@ -61,15 +64,6 @@ class TampilanMasuk extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 8),
-                // Text(
-                //   'Sakuku',
-                //   style: TextStyle(
-                //     fontSize: 28,
-                //     fontWeight: FontWeight.bold,
-                //     color: Color(0xFF2C3E50),
-                //   ),
-                // ),
-                // SizedBox(height: 24),
                 Text(
                   'Selamat Datang',
                   style: TextStyle(
@@ -88,25 +82,35 @@ class TampilanMasuk extends StatelessWidget {
 
                 // Forms
                 _buildTextField(
+                  context,
                   label: 'Username',
                   hint: 'Masukan username anda',
                   controller: usernameCtrl,
                   icon: Icons.person_outline,
                 ),
                 SizedBox(height: 20),
-                _buildTextField(
-                  label: 'Password',
-                  hint: 'Masukan password',
-                  controller: passwordCtrl,
-                  icon: Icons.lock_outline,
-                  isPassword: true,
+
+                // Password Field with Visibility Toggle
+                Obx(
+                  () => _buildTextField(
+                    context,
+                    label: 'Password',
+                    hint: 'Masukan password',
+                    controller: passwordCtrl,
+                    icon: Icons.lock_outline,
+                    isPassword: true,
+                    isObscure: !authCtrl.isLoginPasswordVisible.value,
+                    onToggleVisibility: authCtrl.toggleLoginPasswordVisibility,
+                  ),
                 ),
 
                 SizedBox(height: 16),
 
                 // Links
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  runSpacing: 8,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     GestureDetector(
                       onTap: () => Get.toNamed('/daftar'),
@@ -198,14 +202,17 @@ class TampilanMasuk extends StatelessWidget {
                             ),
                           ),
                           icon: Image.network(
-                            'https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg',
+                            'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/768px-Google_%22G%22_logo.svg.png',
                             height: 24,
-                            errorBuilder: (ctx, err, stack) =>
-                                Icon(Icons.g_mobiledata),
+                            errorBuilder: (context, error, stackTrace) =>
+                                Icon(Icons.login),
                           ),
                           label: Text(
                             'Masuk dengan Google',
-                            style: TextStyle(color: Colors.black87),
+                            style: TextStyle(
+                              color: Color(0xFF2C3E50),
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           onPressed: () => authCtrl.loginWithGoogle(),
                         ),
@@ -218,12 +225,15 @@ class TampilanMasuk extends StatelessWidget {
     );
   }
 
-  Widget _buildTextField({
+  Widget _buildTextField(
+    BuildContext context, {
     required String label,
     required String hint,
     required TextEditingController controller,
     required IconData icon,
     bool isPassword = false,
+    bool isObscure = false,
+    VoidCallback? onToggleVisibility,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -232,35 +242,46 @@ class TampilanMasuk extends StatelessWidget {
           label,
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            color: Colors.grey[700],
-            fontSize: 14,
+            color: Theme.of(context).textTheme.bodyLarge?.color,
           ),
         ),
         SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 10,
-                offset: Offset(0, 4),
-              ),
-            ],
+            border: Border.all(
+              color: Theme.of(context).dividerColor,
+            ), // Added border
           ),
           child: TextField(
             controller: controller,
-            obscureText: isPassword,
+            obscureText: isObscure,
+            style: TextStyle(
+              color: Theme.of(context).textTheme.bodyLarge?.color,
+            ),
             decoration: InputDecoration(
               hintText: hint,
-              hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
-              prefixIcon: Icon(icon, color: Colors.grey[500], size: 20),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
+              hintStyle: TextStyle(
+                color: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.color?.withValues(alpha: 0.5),
               ),
-              contentPadding: EdgeInsets.symmetric(vertical: 16),
+              prefixIcon: Icon(icon, color: Theme.of(context).iconTheme.color),
+              suffixIcon: isPassword
+                  ? IconButton(
+                      icon: Icon(
+                        isObscure ? Icons.visibility_off : Icons.visibility,
+                        color: Theme.of(context).iconTheme.color,
+                      ),
+                      onPressed: onToggleVisibility,
+                    )
+                  : null,
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: 16,
+              ),
             ),
           ),
         ),

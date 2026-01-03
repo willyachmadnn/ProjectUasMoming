@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import '../../../controllers/transaksi_controllers.dart';
 import '../../../models/transaksi_models.dart';
 import '../../../models/kategori_models.dart';
+import '../../../utils/currency_formatter.dart';
 
 // ==============================================================================
 // Dialog Tambah / Edit Transaksi
@@ -52,45 +54,13 @@ class _DialogTambahTransaksiState extends State<DialogTambahTransaksi> {
       // Initialize with first category if available based on default type (Expense)
       _updateCategorySelection();
     }
-
-    _amountController.addListener(_formatCurrency);
   }
 
   @override
   void dispose() {
-    _amountController.removeListener(_formatCurrency);
     _descriptionController.dispose();
     _amountController.dispose();
     super.dispose();
-  }
-
-  void _formatCurrency() {
-    final text = _amountController.text;
-    if (text.isEmpty) return;
-
-    // Remove non-digits
-    final numberStr = text.replaceAll(RegExp(r'[^0-9]'), '');
-    if (numberStr.isEmpty) {
-      if (text.isNotEmpty) {
-        _amountController.value = TextEditingValue.empty;
-      }
-      return;
-    }
-
-    final number = double.tryParse(numberStr) ?? 0;
-    final formatter = NumberFormat.currency(
-      locale: 'id',
-      symbol: '',
-      decimalDigits: 0,
-    );
-    final formatted = formatter.format(number);
-
-    if (text != formatted) {
-      _amountController.value = TextEditingValue(
-        text: formatted,
-        selection: TextSelection.collapsed(offset: formatted.length),
-      );
-    }
   }
 
   void _updateCategorySelection() {
@@ -114,182 +84,212 @@ class _DialogTambahTransaksiState extends State<DialogTambahTransaksi> {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Container(
-        width: 400,
+        width: context.width > 400 ? 400 : context.width * 0.9,
+        constraints: BoxConstraints(maxHeight: context.height * 0.8),
         padding: EdgeInsets.all(24),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                widget.transaction == null
-                    ? 'Tambah Transaksi Baru'
-                    : 'Edit Transaksi',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 24),
-
-              // Description
-              TextFormField(
-                controller: _descriptionController,
-                textCapitalization: TextCapitalization.words,
-                decoration: InputDecoration(
-                  labelText: 'Deskripsi',
-                  border: OutlineInputBorder(),
+        child: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.transaction == null
+                      ? 'Tambah Transaksi Baru'
+                      : 'Edit Transaksi',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
-                validator: (val) =>
-                    val == null || val.isEmpty ? 'Required' : null,
-              ),
-              SizedBox(height: 16),
+                SizedBox(height: 24),
 
-              // Amount
-              TextFormField(
-                controller: _amountController,
-                decoration: InputDecoration(
-                  labelText: 'Jumlah (Rp)',
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  // We handle formatting in listener, but this helps on some keyboards
-                ],
-                validator: (val) {
-                  if (val == null || val.isEmpty) return 'Invalid amount';
-                  final numStr = val.replaceAll(RegExp(r'[^0-9]'), '');
-                  return numStr.isEmpty ? 'Invalid amount' : null;
-                },
-              ),
-              SizedBox(height: 16),
-
-              // Type Switch
-              Row(
-                children: [
-                  Text('Tipe: ', style: TextStyle(fontWeight: FontWeight.bold)),
-                  SizedBox(width: 16),
-                  ChoiceChip(
-                    label: Text('Pengeluaran'),
-                    selected: _isExpense,
-                    onSelected: (val) {
-                      setState(() {
-                        _isExpense = true;
-                        _updateCategorySelection();
-                      });
-                    },
-                    selectedColor: Colors.red[100],
-                    labelStyle: TextStyle(
-                      color: _isExpense
-                          ? Colors.red
-                          : Theme.of(context).textTheme.bodyMedium?.color,
-                    ),
-                  ),
-                  SizedBox(width: 8),
-                  ChoiceChip(
-                    label: Text('Pemasukan'),
-                    selected: !_isExpense,
-                    onSelected: (val) {
-                      setState(() {
-                        _isExpense = false;
-                        _updateCategorySelection();
-                      });
-                    },
-                    selectedColor: Colors.green[100],
-                    labelStyle: TextStyle(
-                      color: !_isExpense
-                          ? Colors.green
-                          : Theme.of(context).textTheme.bodyMedium?.color,
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 16),
-
-              // Category Dropdown
-              DropdownButtonFormField<String>(
-                // ignore: deprecated_member_use
-                value:
-                    _filteredCategories.any((c) => c.name == _selectedCategory)
-                    ? _selectedCategory
-                    : null,
-                decoration: InputDecoration(
-                  labelText: 'Kategori',
-                  border: OutlineInputBorder(),
-                ),
-                items: _filteredCategories.map((c) => c.name).toSet().map((
-                  name,
-                ) {
-                  return DropdownMenuItem(value: name, child: Text(name));
-                }).toList(),
-                onChanged: (val) =>
-                    setState(() => _selectedCategory = val ?? 'Other'),
-              ),
-              SizedBox(height: 16),
-
-              // Date Picker
-              InkWell(
-                onTap: () async {
-                  final picked = await showDatePicker(
-                    context: context,
-                    initialDate: _selectedDate,
-                    firstDate: DateTime(2020),
-                    lastDate: DateTime(2030),
-                    locale: const Locale('id', 'ID'),
-                  );
-                  if (picked != null) setState(() => _selectedDate = picked);
-                },
-                child: InputDecorator(
+                // Description
+                TextFormField(
+                  controller: _descriptionController,
+                  textCapitalization: TextCapitalization.words,
                   decoration: InputDecoration(
-                    labelText: 'Tanggal',
+                    labelText: 'Deskripsi',
                     border: OutlineInputBorder(),
-                    suffixIcon: Icon(Icons.calendar_today),
                   ),
-                  child: Text(
-                    DateFormat('d MMMM yyyy', 'id').format(_selectedDate),
+                  validator: (val) =>
+                      val == null || val.isEmpty ? 'Required' : null,
+                ),
+                SizedBox(height: 16),
+
+                // Amount
+                TextFormField(
+                  controller: _amountController,
+                  decoration: InputDecoration(
+                    labelText: 'Jumlah (Rp)',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [CurrencyInputFormatter()],
+                  validator: (val) {
+                    if (val == null || val.isEmpty) return 'Invalid amount';
+                    final numStr = val.replaceAll(RegExp(r'[^0-9]'), '');
+                    return numStr.isEmpty ? 'Invalid amount' : null;
+                  },
+                ),
+                SizedBox(height: 16),
+
+                // Type Switch
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Tipe:',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        ChoiceChip(
+                          label: Text('Pengeluaran'),
+                          selected: _isExpense,
+                          onSelected: (val) {
+                            setState(() {
+                              _isExpense = true;
+                              _updateCategorySelection();
+                            });
+                          },
+                          selectedColor: Colors.red[100],
+                          labelStyle: TextStyle(
+                            color: _isExpense
+                                ? Colors.red
+                                : Theme.of(context).textTheme.bodyMedium?.color,
+                          ),
+                        ),
+                        ChoiceChip(
+                          label: Text('Pemasukan'),
+                          selected: !_isExpense,
+                          onSelected: (val) {
+                            setState(() {
+                              _isExpense = false;
+                              _updateCategorySelection();
+                            });
+                          },
+                          selectedColor: Colors.green[100],
+                          labelStyle: TextStyle(
+                            color: !_isExpense
+                                ? Colors.green
+                                : Theme.of(context).textTheme.bodyMedium?.color,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16),
+
+                // Category Dropdown
+                Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        // ignore: deprecated_member_use
+                        value:
+                            _filteredCategories.any(
+                              (c) => c.name == _selectedCategory,
+                            )
+                            ? _selectedCategory
+                            : null,
+                        decoration: InputDecoration(
+                          labelText: 'Kategori',
+                          border: OutlineInputBorder(),
+                        ),
+                        items: _filteredCategories
+                            .map((c) => c.name)
+                            .toSet()
+                            .map((name) {
+                              return DropdownMenuItem(
+                                value: name,
+                                child: Text(name),
+                              );
+                            })
+                            .toList(),
+                        onChanged: (val) =>
+                            setState(() => _selectedCategory = val ?? 'Other'),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16),
+
+                // Date Picker
+                InkWell(
+                  onTap: () async {
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: _selectedDate,
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime(2030),
+                      locale: const Locale('id', 'ID'),
+                    );
+                    if (picked != null) setState(() => _selectedDate = picked);
+                  },
+                  child: InputDecorator(
+                    decoration: InputDecoration(
+                      labelText: 'Tanggal',
+                      border: OutlineInputBorder(),
+                      suffixIcon: Icon(Icons.calendar_today),
+                    ),
+                    child: Text(
+                      DateFormat('d MMMM yyyy', 'id').format(_selectedDate),
+                    ),
                   ),
                 ),
-              ),
-              SizedBox(height: 24),
+                SizedBox(height: 24),
 
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(onPressed: () => Get.back(), child: Text('Batal')),
-                  SizedBox(width: 8),
-                  ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        // Parse amount from formatted string
-                        final amountStr = _amountController.text.replaceAll(
-                          RegExp(r'[^0-9]'),
-                          '',
-                        );
-                        final amount = double.parse(amountStr);
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Get.back(),
+                      child: Text('Batal'),
+                    ),
+                    SizedBox(width: 8),
+                    ElevatedButton(
+                      onPressed: () {
+                        if (_formKey.currentState!.validate()) {
+                          // Parse amount from formatted string
+                          final amountStr = _amountController.text.replaceAll(
+                            RegExp(r'[^0-9]'),
+                            '',
+                          );
+                          final amount = double.parse(amountStr);
 
-                        final tx = ModelTransaksi(
-                          id: widget.transaction?.id ?? '',
-                          description: _descriptionController.text,
-                          amount: amount,
-                          isExpense: _isExpense,
-                          date: _selectedDate,
-                          category: _selectedCategory,
-                        );
+                          final tx = ModelTransaksi(
+                            id: widget.transaction?.id ?? '',
+                            uid:
+                                widget.transaction?.uid ??
+                                FirebaseAuth.instance.currentUser?.uid ??
+                                '',
+                            description: _descriptionController.text,
+                            amount: amount,
+                            isExpense: _isExpense,
+                            type: _isExpense ? 'expense' : 'income',
+                            date: _selectedDate,
+                            category: _selectedCategory,
+                          );
 
-                        if (widget.transaction == null) {
-                          widget.controller.addTransaction(tx);
-                        } else {
-                          widget.controller.updateTransaction(tx);
+                          if (widget.transaction == null) {
+                            widget.controller.addTransaction(tx);
+                          } else {
+                            widget.controller.updateTransaction(tx);
+                          }
+                          Get.back();
                         }
-                        Get.back();
-                      }
-                    },
-                    child: Text('Simpan'),
-                  ),
-                ],
-              ),
-            ],
+                      },
+                      child: Text('Simpan'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -319,73 +319,78 @@ class _DialogTambahKategoriState extends State<DialogTambahKategori> {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Container(
-        width: 400, // Same width as transaction dialog
+        width: context.width > 400 ? 400 : context.width * 0.9,
         padding: EdgeInsets.all(24),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Tambah Kategori Baru',
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 24),
-
-              TextFormField(
-                controller: _nameController,
-                textCapitalization: TextCapitalization.words,
-                decoration: InputDecoration(
-                  labelText: 'Nama Kategori',
-                  border: OutlineInputBorder(),
+        child: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Tambah Kategori Baru',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
-                validator: (val) =>
-                    val == null || val.isEmpty ? 'Required' : null,
-              ),
-              SizedBox(height: 16),
+                SizedBox(height: 24),
 
-              DropdownButtonFormField<String>(
-                initialValue: _type,
-                decoration: InputDecoration(
-                  labelText: 'Tipe',
-                  border: OutlineInputBorder(),
+                TextFormField(
+                  controller: _nameController,
+                  textCapitalization: TextCapitalization.words,
+                  decoration: InputDecoration(
+                    labelText: 'Nama Kategori',
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (val) =>
+                      val == null || val.isEmpty ? 'Required' : null,
                 ),
-                items: [
-                  DropdownMenuItem(
-                    value: 'expense',
-                    child: Text('Pengeluaran'),
-                  ),
-                  DropdownMenuItem(value: 'income', child: Text('Pemasukan')),
-                ],
-                onChanged: (val) => setState(() => _type = val!),
-              ),
-              SizedBox(height: 24),
+                SizedBox(height: 16),
 
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(onPressed: () => Get.back(), child: Text('Batal')),
-                  SizedBox(width: 8),
-                  ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        final cat = ModelKategori(
-                          id: '',
-                          name: _nameController.text,
-                          type: _type,
-                        );
-                        widget.controller.addCategory(cat);
-                        Get.back();
-                      }
-                    },
-                    child: Text('Simpan'),
+                DropdownButtonFormField<String>(
+                  initialValue: _type,
+                  decoration: InputDecoration(
+                    labelText: 'Tipe',
+                    border: OutlineInputBorder(),
                   ),
-                ],
-              ),
-            ],
+                  items: [
+                    DropdownMenuItem(
+                      value: 'expense',
+                      child: Text('Pengeluaran'),
+                    ),
+                    DropdownMenuItem(value: 'income', child: Text('Pemasukan')),
+                  ],
+                  onChanged: (val) => setState(() => _type = val!),
+                ),
+                SizedBox(height: 24),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Get.back(),
+                      child: Text('Batal'),
+                    ),
+                    SizedBox(width: 8),
+                    ElevatedButton(
+                      onPressed: () {
+                        if (_formKey.currentState!.validate()) {
+                          final cat = ModelKategori(
+                            id: '',
+                            name: _nameController.text,
+                            type: _type,
+                          );
+                          widget.controller.addCategory(cat);
+                          Get.back();
+                        }
+                      },
+                      child: Text('Simpan'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

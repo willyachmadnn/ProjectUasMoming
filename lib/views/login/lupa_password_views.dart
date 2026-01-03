@@ -24,7 +24,9 @@ class TampilanLupaPassword extends StatelessWidget {
         child: SingleChildScrollView(
           padding: EdgeInsets.all(24),
           child: Container(
-            constraints: BoxConstraints(maxWidth: 450),
+            constraints: BoxConstraints(
+              maxWidth: Get.width > 600 ? 450 : Get.width * 0.9,
+            ),
             padding: EdgeInsets.all(40),
             decoration: BoxDecoration(
               color: Color(0xFFE0E5EC),

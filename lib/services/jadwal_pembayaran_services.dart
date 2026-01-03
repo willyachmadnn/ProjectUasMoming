@@ -43,9 +43,56 @@ class LayananJadwalPembayaran {
     await _schedulesRef.doc(schedule.id).update(data);
   }
 
-  // Mark as Paid
+  // Mark as Paid and Handle Recurrence
   Future<void> markAsPaid(String id, bool isPaid) async {
-    await _schedulesRef.doc(id).update({'isPaid': isPaid});
+    final docRef = _schedulesRef.doc(id);
+    await docRef.update({'isPaid': isPaid});
+
+    // Logic for Recurring Payments (Cloud Function Simulation)
+    if (isPaid) {
+      final doc = await docRef.get();
+      final data = doc.data() as Map<String, dynamic>;
+      final String recurrence = data['recurrence'] ?? 'none';
+
+      if (recurrence != 'none') {
+        final DateTime currentDueDate = (data['dueDate'] as Timestamp).toDate();
+        DateTime? nextDate;
+
+        if (recurrence == 'daily') {
+          nextDate = currentDueDate.add(Duration(days: 1));
+        } else if (recurrence == 'weekly') {
+          nextDate = currentDueDate.add(Duration(days: 7));
+        } else if (recurrence == 'monthly') {
+          // Add 1 month safely
+          nextDate = DateTime(
+            currentDueDate.year,
+            currentDueDate.month + 1,
+            currentDueDate.day,
+            currentDueDate.hour,
+            currentDueDate.minute,
+          );
+        }
+
+        if (nextDate != null) {
+          // Create next schedule
+          final newSchedule = ModelJadwalPembayaran(
+            id: '', // Auto-ID
+            name: data['name'],
+            amount: (data['amount'] as num).toDouble(),
+            dueDate: nextDate,
+            isPaid: false,
+            category: data['category'],
+            notes: data['notes'],
+            recurrence: recurrence, // Pass the torch
+          );
+
+          await addSchedule(newSchedule);
+
+          // Optional: Disable recurrence on the old one to prevent double-spawning if toggled
+          // await docRef.update({'recurrence': 'none'});
+        }
+      }
+    }
   }
 
   // Delete Schedule

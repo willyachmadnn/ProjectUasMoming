@@ -144,37 +144,83 @@ class BarFilterTransaksi extends StatelessWidget {
 
               if (!isSmallScreen) Spacer(),
 
-              // Add Category Button
-              OutlinedButton.icon(
-                onPressed: () =>
-                    Get.dialog(DialogTambahKategori(controller: controller)),
-                icon: Icon(Icons.add),
-                label: Text('Tambah Kategori'),
-                style: OutlinedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+              // Buttons
+              if (isSmallScreen) ...[
+                SizedBox(width: double.infinity, height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: () => Get.dialog(
+                          DialogTambahKategori(controller: controller),
+                        ),
+                        icon: Icon(Icons.add),
+                        label: Text('Kategori'),
+                        style: OutlinedButton.styleFrom(
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => Get.dialog(
+                          DialogTambahTransaksi(controller: controller),
+                        ),
+                        icon: Icon(Icons.add, color: Colors.white),
+                        label: Text(
+                          'Transaksi',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Theme.of(context).primaryColor,
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ] else ...[
+                // Add Category Button
+                OutlinedButton.icon(
+                  onPressed: () =>
+                      Get.dialog(DialogTambahKategori(controller: controller)),
+                  icon: Icon(Icons.add),
+                  label: Text('Tambah Kategori'),
+                  style: OutlinedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                 ),
-              ),
 
-              // Add Transaction Button
-              ElevatedButton.icon(
-                onPressed: () =>
-                    Get.dialog(DialogTambahTransaksi(controller: controller)),
-                icon: Icon(Icons.add, color: Colors.white),
-                label: Text(
-                  'Tambah Transaksi',
-                  style: TextStyle(color: Colors.white),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).primaryColor,
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                SizedBox(width: 16),
+
+                // Add Transaction Button
+                ElevatedButton.icon(
+                  onPressed: () =>
+                      Get.dialog(DialogTambahTransaksi(controller: controller)),
+                  icon: Icon(Icons.add, color: Colors.white),
+                  label: Text(
+                    'Tambah Transaksi',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).primaryColor,
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                 ),
-              ),
+              ],
             ],
           ),
         );

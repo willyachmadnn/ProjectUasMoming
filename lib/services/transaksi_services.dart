@@ -9,20 +9,9 @@ class LayananTransaksi {
 
   String? get _userId => FirebaseAuth.instance.currentUser?.uid;
 
-  // Transactions Collection Reference (Subcollection)
+  // Transactions Collection Reference (Root Collection)
   CollectionReference get _transactionsRef {
-    if (_userId == null) {
-      // Return a safe dummy ref or handle error
-      // Ideally this shouldn't be called if user is null
-      return _firestore
-          .collection('users')
-          .doc('guest')
-          .collection('transactions');
-    }
-    return _firestore
-        .collection('users')
-        .doc(_userId)
-        .collection('transactions');
+    return _firestore.collection('transactions');
   }
 
   // Categories Collection Reference (Subcollection)
@@ -113,7 +102,11 @@ class LayananTransaksi {
       return const Stream.empty();
     }
 
-    Query query = _transactionsRef.orderBy('date', descending: true);
+    // Filter by User ID first
+    Query query = _transactionsRef.where('uid', isEqualTo: _userId);
+
+    // Then order by date
+    query = query.orderBy('date', descending: true);
 
     if (month != null) {
       final startOfMonth = DateTime(month.year, month.month, 1);
@@ -141,6 +134,10 @@ class LayananTransaksi {
 
   // Add Transaction
   Future<void> addTransaction(ModelTransaksi transaction) async {
+    if (_userId == null) {
+      // Fallback or Error
+      print("Warning: Adding transaction as Guest");
+    }
     final data = transaction.toJson();
     data['uid'] = _userId; // Keep uid for redundancy/safety
     await _transactionsRef.add(data);
