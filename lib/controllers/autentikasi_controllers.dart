@@ -37,8 +37,11 @@ class KontrolerAutentikasi extends GetxController {
     isLoggedIn.value = _authService.isLoggedIn;
     if (isLoggedIn.value) {
       final user = _authService.currentUser;
+      // Ambil nama depan saja (split spasi pertama)
       userName.value =
-          user?.displayName ?? user?.email?.split('@')[0] ?? 'User';
+          user?.displayName?.split(' ')[0] ??
+          user?.email?.split('@')[0] ??
+          'User';
     }
   }
 

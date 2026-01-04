@@ -14,7 +14,7 @@ class TabelTransaksiTerbaru extends StatelessWidget {
       symbol: 'Rp ',
       decimalDigits: 0,
     );
-    final dateFormat = DateFormat('dd/MM/yyyy');
+    final dateFormat = DateFormat('d MMMM yyyy', 'id_ID');
 
     return Container(
       padding: EdgeInsets.all(16),
@@ -128,7 +128,7 @@ class TabelTransaksiTerbaru extends StatelessWidget {
                     ),
                   )
                 else
-                  ...transactions.take(5).map((tx) {
+                  ...transactions.take(7).map((tx) {
                     return Container(
                       padding: EdgeInsets.symmetric(
                         horizontal: 16,

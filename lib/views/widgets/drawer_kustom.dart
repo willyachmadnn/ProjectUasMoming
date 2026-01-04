@@ -28,7 +28,9 @@ class DrawerKustom extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Image.asset(
-                      'assets/sakuku.png',
+                      Get.isDarkMode
+                          ? 'assets/sakuku2.png'
+                          : 'assets/sakuku.png',
                       height: 80,
                       fit: BoxFit.contain,
                       errorBuilder: (context, error, stackTrace) => Icon(
@@ -38,15 +40,6 @@ class DrawerKustom extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: 12),
-                    Text(
-                      'SAKUKU',
-                      style: TextStyle(
-                        color: theme.textTheme.titleLarge?.color,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20,
-                        letterSpacing: 1.5,
-                      ),
-                    ),
                   ],
                 ),
               ),
