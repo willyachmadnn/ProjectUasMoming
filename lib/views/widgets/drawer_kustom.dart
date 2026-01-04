@@ -28,7 +28,9 @@ class DrawerKustom extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Image.asset(
-                      'assets/sakuku.png',
+                      Get.isDarkMode
+                          ? 'assets/sakuku2.png'
+                          : 'assets/sakuku.png',
                       height: 80,
                       fit: BoxFit.contain,
                       errorBuilder: (context, error, stackTrace) => Icon(
@@ -37,6 +39,7 @@ class DrawerKustom extends StatelessWidget {
                         color: theme.primaryColor,
                       ),
                     ),
+<<<<<<< HEAD
                     SizedBox(height: 20),
                     Text(
                       '"DOMPET PRIBADI DIGITAL"',
@@ -47,6 +50,9 @@ class DrawerKustom extends StatelessWidget {
                         letterSpacing: 1.5,
                       ),
                     ),
+=======
+                    SizedBox(height: 12),
+>>>>>>> 5d8571e3c728704cc579bcaf3bd0ff4802d7bc85
                   ],
                 ),
               ),

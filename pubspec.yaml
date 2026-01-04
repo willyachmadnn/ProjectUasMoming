@@ -58,16 +58,18 @@ dev_dependencies:
     sdk: flutter
   flutter_launcher_icons: ^0.13.1
 
-flutter_icons:
+flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
   image_path: "assets/dompet.png"
-  min_sdk_android: 21 # android min sdk min:16, default 21
+  min_sdk_android: 21
+  adaptive_icon_foreground: "assets/dompet.png"
+  adaptive_icon_background: "#FFA3B1C6"
   web:
     generate: true
     image_path: "assets/dompet.png"
-    background_color: "#hex_code"
-    theme_color: "#hex_code"
+    background_color: "#FFA3B1C6"
+    theme_color: "#FFA3B1C6"
   windows:
     generate: true
     image_path: "assets/dompet.png"
@@ -93,6 +95,8 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/sakuku.png
+    - assets/sakuku2.png
+    - assets/dompet.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

@@ -20,190 +20,219 @@ class TampilanMasuk extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFE0E5EC), // Soft gray background like image
-      body: Center(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.all(24),
-          child: Container(
-            constraints: BoxConstraints(
-              maxWidth: Get.width > 600 ? 450 : Get.width * 0.9,
-            ),
-            padding: EdgeInsets.all(40),
-            decoration: BoxDecoration(
-              color: Color(0xFFE0E5EC), // Neumorphic base color
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.white.withValues(alpha: 0.8),
-                  offset: Offset(-6, -6),
-                  blurRadius: 16,
-                ),
-                BoxShadow(
-                  color: Color(0xFFA3B1C6).withValues(alpha: 0.5),
-                  offset: Offset(6, 6),
-                  blurRadius: 16,
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+      backgroundColor: Color(0xFFF5F6FA), // Abu-abu sangat muda
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          if (constraints.maxWidth > 800) {
+            // Desktop Layout: Row (Split Screen)
+            return Row(
               children: [
-                // Logo & Title
+                Expanded(child: Container()), // Spacer Kiri
                 Container(
-                  height: Get.height * 0.25, // Responsive height
-                  constraints: BoxConstraints(maxHeight: 200, minHeight: 150),
-                  width: double.infinity,
-                  child: Image.asset(
-                    'assets/sakuku.png',
-                    fit: BoxFit.contain,
-                    errorBuilder: (context, error, stackTrace) => Icon(
-                      Icons.account_balance_wallet,
-                      size: 90,
-                      color: Color(0xFF2C3E50),
-                    ),
-                  ),
+                  width: 450,
+                  margin: EdgeInsets.symmetric(vertical: 40),
+                  child: Center(child: _buildUnifiedFormCard(context)),
                 ),
-                SizedBox(height: 8),
-                Text(
-                  'Selamat Datang',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  'Masa Depan Cerah Dimulai dari Catatan Kecil',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.grey[600], fontSize: 14),
-                ),
-                SizedBox(height: 24),
+                Expanded(child: Container()), // Spacer Kanan
+              ],
+            );
+          } else {
+            // Mobile Layout: Center + SingleChildScrollView
+            return Center(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.all(24),
+                child: _buildUnifiedFormCard(context),
+              ),
+            );
+          }
+        },
+      ),
+    );
+  }
 
-                // Forms
-                _buildTextField(
-                  context,
-                  label: 'Username',
-                  hint: 'Masukan username anda',
-                  controller: usernameCtrl,
-                  icon: Icons.person_outline,
-                ),
-                SizedBox(height: 20),
+  Widget _buildUnifiedFormCard(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(32), // Reduced padding
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            offset: Offset(0, 10),
+            blurRadius: 30,
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min, // Kartu hanya setinggi konten
+        children: [
+          // 1. Logo & Branding (Menyatu dalam kartu)
+          Image.asset(
+            Get.isDarkMode ? 'assets/sakuku2.png' : 'assets/sakuku.png',
+            height: 60, // Reduced height
+            fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) => Icon(
+              Icons.account_balance_wallet,
+              size: 60,
+              color: Theme.of(context).primaryColor,
+            ),
+          ),
+          SizedBox(height: 12), // Reduced spacing
+          Text(
+            'Sakuku',
+            style: TextStyle(
+              fontSize: 24, // Reduced font size
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).textTheme.titleLarge?.color,
+            ),
+          ),
+          SizedBox(height: 4),
+          Text(
+            'Masa Depan Cerah Dimulai dari Catatan Kecil',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.grey[600],
+              fontSize: 12,
+            ), // Reduced font size
+          ),
+          SizedBox(height: 24), // Reduced spacing
+          // 2. Form Input
+          _buildTextField(
+            context,
+            label: 'Username',
+            hint: 'Masukan username anda',
+            controller: usernameCtrl,
+            icon: Icons.person_outline,
+          ),
+          SizedBox(height: 16), // Reduced spacing
 
-                // Password Field with Visibility Toggle
-                Obx(
-                  () => _buildTextField(
-                    context,
-                    label: 'Password',
-                    hint: 'Masukan password',
-                    controller: passwordCtrl,
-                    icon: Icons.lock_outline,
-                    isPassword: true,
-                    isObscure: !authCtrl.isLoginPasswordVisible.value,
-                    onToggleVisibility: authCtrl.toggleLoginPasswordVisibility,
-                  ),
-                ),
-
-                SizedBox(height: 16),
-
-                // Links
-                Wrap(
-                  alignment: WrapAlignment.spaceBetween,
-                  runSpacing: 8,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    GestureDetector(
-                      onTap: () => Get.toNamed('/daftar'),
-                      child: RichText(
-                        text: TextSpan(
-                          text: 'Belum punya akun? ',
-                          style: TextStyle(color: Colors.black54, fontSize: 12),
-                          children: [
-                            TextSpan(
-                              text: 'Daftar',
-                              style: TextStyle(
-                                color: Color(0xFF2C3E50),
-                                fontWeight: FontWeight.bold,
-                                decoration: TextDecoration.underline,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () => Get.toNamed('/lupa_password'),
-                      child: Text(
-                        'Lupa password?',
+          Obx(
+            () => _buildTextField(
+              context,
+              label: 'Password',
+              hint: 'Masukan password',
+              controller: passwordCtrl,
+              icon: Icons.lock_outline,
+              isPassword: true,
+              isObscure: !authCtrl.isLoginPasswordVisible.value,
+              onToggleVisibility: authCtrl.toggleLoginPasswordVisibility,
+            ),
+          ),
+          SizedBox(height: 12), // Reduced spacing
+          // 3. Links (Lupa Password & Daftar)
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              GestureDetector(
+                onTap: () => Get.toNamed('/daftar'),
+                child: RichText(
+                  text: TextSpan(
+                    text: 'Belum punya akun? ',
+                    style: TextStyle(
+                      color: Colors.black54,
+                      fontSize: 11,
+                    ), // Reduced font size
+                    children: [
+                      TextSpan(
+                        text: 'Daftar',
                         style: TextStyle(
                           color: Color(0xFF2C3E50),
-                          fontSize: 12,
                           fontWeight: FontWeight.bold,
                           decoration: TextDecoration.underline,
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-
-                SizedBox(height: 32),
-
-                // Login Button
-                Obx(
-                  () => authCtrl.isLoading.value
-                      ? CircularProgressIndicator()
-                      : SizedBox(
-                          width: double.infinity,
-                          height: 50,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Color(0xFF34495E),
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              elevation: 5,
+              ),
+              TextButton(
+                onPressed: () => Get.toNamed('/lupa_password'),
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  minimumSize: Size(0, 0),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: Text(
+                  'Lupa password?',
+                  style: TextStyle(
+                    color: Color(0xFF2C3E50),
+                    fontSize: 11, // Reduced font size
+                    fontWeight: FontWeight.bold,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 24), // Reduced spacing
+          // 4. Action Buttons
+          Obx(
+            () => authCtrl.isLoading.value
+                ? CircularProgressIndicator()
+                : Column(
+                    children: [
+                      SizedBox(
+                        width: double.infinity,
+                        height: 45, // Reduced height
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color(0xFF34495E),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                            onPressed: () {
-                              authCtrl.login(
-                                usernameCtrl.text,
-                                passwordCtrl.text,
-                              );
-                            },
-                            child: Text(
-                              'Masuk',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1,
-                              ),
+                            elevation: 0,
+                          ),
+                          onPressed: () {
+                            authCtrl.login(
+                              usernameCtrl.text,
+                              passwordCtrl.text,
+                            );
+                          },
+                          child: Text(
+                            'Masuk',
+                            style: TextStyle(
+                              fontSize: 14, // Reduced font size
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1,
                             ),
                           ),
                         ),
-                ),
-
-                SizedBox(height: 20),
-                Divider(),
-                SizedBox(height: 20),
-
-                // Google Sign In
-                Obx(
-                  () => authCtrl.isLoading.value
-                      ? SizedBox.shrink()
-                      : OutlinedButton.icon(
-                          style: OutlinedButton.styleFrom(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 12,
+                      ),
+                      SizedBox(height: 16), // Reduced spacing
+                      Row(
+                        children: [
+                          Expanded(child: Divider()),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Text(
+                              'ATAU',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 11, // Reduced font size
+                              ),
                             ),
-                            side: BorderSide(color: Colors.grey),
+                          ),
+                          Expanded(child: Divider()),
+                        ],
+                      ),
+                      SizedBox(height: 16), // Reduced spacing
+                      SizedBox(
+                        width: double.infinity,
+                        height: 45, // Reduced height
+                        child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: Colors.grey.shade300),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
                           icon: Image.network(
                             'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/768px-Google_%22G%22_logo.svg.png',
-                            height: 24,
+                            height: 20, // Reduced icon size
                             errorBuilder: (context, error, stackTrace) =>
                                 Icon(Icons.login),
                           ),
@@ -212,15 +241,16 @@ class TampilanMasuk extends StatelessWidget {
                             style: TextStyle(
                               color: Color(0xFF2C3E50),
                               fontWeight: FontWeight.bold,
+                              fontSize: 13, // Reduced font size
                             ),
                           ),
                           onPressed: () => authCtrl.loginWithGoogle(),
                         ),
-                ),
-              ],
-            ),
+                      ),
+                    ],
+                  ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -241,35 +271,45 @@ class TampilanMasuk extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
+            fontSize: 13, // Reduced font size
             fontWeight: FontWeight.bold,
             color: Theme.of(context).textTheme.bodyLarge?.color,
           ),
         ),
-        SizedBox(height: 8),
+        SizedBox(height: 6), // Reduced spacing
         Container(
           decoration: BoxDecoration(
             color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: Theme.of(context).dividerColor,
-            ), // Added border
+            border: Border.all(color: Theme.of(context).dividerColor),
           ),
           child: TextField(
             controller: controller,
             obscureText: isObscure,
             style: TextStyle(
+              fontSize: 14, // Explicit font size
               color: Theme.of(context).textTheme.bodyLarge?.color,
             ),
             decoration: InputDecoration(
+              isDense: true, // Compacting vertical space
               hintText: hint,
               hintStyle: TextStyle(
+                fontSize: 13, // Reduced font size
                 color: Theme.of(
                   context,
                 ).textTheme.bodyMedium?.color?.withValues(alpha: 0.5),
               ),
-              prefixIcon: Icon(icon, color: Theme.of(context).iconTheme.color),
+              prefixIcon: Icon(
+                icon,
+                size: 20,
+                color: Theme.of(context).iconTheme.color,
+              ), // Reduced icon size
+              prefixIconConstraints: BoxConstraints(
+                minWidth: 40,
+              ), // Tighter icon spacing
               suffixIcon: isPassword
                   ? IconButton(
+                      iconSize: 20, // Reduced icon size
                       icon: Icon(
                         isObscure ? Icons.visibility_off : Icons.visibility,
                         color: Theme.of(context).iconTheme.color,
@@ -279,8 +319,8 @@ class TampilanMasuk extends StatelessWidget {
                   : null,
               border: InputBorder.none,
               contentPadding: EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 16,
+                horizontal: 16, // Reduced horizontal padding
+                vertical: 14, // Reduced vertical padding
               ),
             ),
           ),

@@ -1,10 +1,11 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.financial">
     <application
         android:label="Sakuku"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
         <activity
-            android:name=".MainActivity"
+            android:name="com.example.financial.MainActivity"
             android:exported="true"
             android:launchMode="singleTop"
             android:taskAffinity=""

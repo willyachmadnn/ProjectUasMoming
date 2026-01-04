@@ -22,6 +22,10 @@ android {
         jvmTarget = JavaVersion.VERSION_11.toString()
     }
 
+    sourceSets {
+        getByName("main").java.srcDirs("src/main/kotlin")
+    }
+
     defaultConfig {
         applicationId = "com.example.financial"
         minSdk = flutter.minSdkVersion

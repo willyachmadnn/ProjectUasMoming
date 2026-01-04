@@ -143,43 +143,63 @@ class _DialogTambahTransaksiState extends State<DialogTambahTransaksi> {
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        ChoiceChip(
-                          label: Text('Pengeluaran'),
-                          selected: _isExpense,
-                          onSelected: (val) {
-                            setState(() {
-                              _isExpense = true;
-                              _updateCategorySelection();
-                            });
-                          },
-                          selectedColor: Colors.red[100],
-                          labelStyle: TextStyle(
-                            color: _isExpense
-                                ? Colors.red
-                                : Theme.of(context).textTheme.bodyMedium?.color,
-                          ),
-                        ),
-                        ChoiceChip(
-                          label: Text('Pemasukan'),
-                          selected: !_isExpense,
-                          onSelected: (val) {
-                            setState(() {
-                              _isExpense = false;
-                              _updateCategorySelection();
-                            });
-                          },
-                          selectedColor: Colors.green[100],
-                          labelStyle: TextStyle(
-                            color: !_isExpense
-                                ? Colors.green
-                                : Theme.of(context).textTheme.bodyMedium?.color,
-                          ),
-                        ),
-                      ],
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        return Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            ChoiceChip(
+                              label: Container(
+                                constraints: BoxConstraints(
+                                  maxWidth: constraints.maxWidth * 0.4,
+                                ),
+                                child: Text(
+                                  'Pengeluaran',
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              selected: _isExpense,
+                              onSelected: (val) {
+                                setState(() {
+                                  _isExpense = true;
+                                  _updateCategorySelection();
+                                });
+                              },
+                              selectedColor: Colors.red[100],
+                              labelStyle: TextStyle(
+                                color: _isExpense
+                                    ? Colors.red
+                                    : Theme.of(context).textTheme.bodyMedium?.color,
+                              ),
+                            ),
+                            ChoiceChip(
+                              label: Container(
+                                constraints: BoxConstraints(
+                                  maxWidth: constraints.maxWidth * 0.4,
+                                ),
+                                child: Text(
+                                  'Pemasukan',
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              selected: !_isExpense,
+                              onSelected: (val) {
+                                setState(() {
+                                  _isExpense = false;
+                                  _updateCategorySelection();
+                                });
+                              },
+                              selectedColor: Colors.green[100],
+                              labelStyle: TextStyle(
+                                color: !_isExpense
+                                    ? Colors.green
+                                    : Theme.of(context).textTheme.bodyMedium?.color,
+                              ),
+                            ),
+                          ],
+                        );
+                      }
                     ),
                   ],
                 ),

@@ -161,17 +161,36 @@ class LayananAutentikasiFirebase implements LayananAutentikasi {
       final userDoc = _firestore.collection('users').doc(user.uid);
       final snapshot = await userDoc.get();
 
+      // Logic Generate Username (Ambil kata pertama dari displayName)
+      String generatedUsername =
+          username ??
+          (user.displayName?.split(" ")[0] ??
+              user.email?.split('@')[0] ??
+              'User');
+
       if (!snapshot.exists) {
+        // User Baru: Simpan data lengkap + username
         await userDoc.set({
           'email': user.email,
           'displayName': user.displayName ?? user.email?.split('@')[0],
-          if (username != null) 'username': username,
+          'username': generatedUsername,
           'photoURL': user.photoURL,
           'createdAt': FieldValue.serverTimestamp(),
           'lastLogin': FieldValue.serverTimestamp(),
         });
       } else {
-        await userDoc.update({'lastLogin': FieldValue.serverTimestamp()});
+        // User Lama: Update lastLogin & Pastikan field username ada
+        Map<String, dynamic> updates = {
+          'lastLogin': FieldValue.serverTimestamp(),
+        };
+
+        // Cek apakah field username sudah ada, jika belum, tambahkan
+        if (snapshot.data() != null &&
+            !snapshot.data()!.containsKey('username')) {
+          updates['username'] = generatedUsername;
+        }
+
+        await userDoc.update(updates);
       }
     } catch (e) {
       debugPrint('Error saving user to Firestore: $e');
