@@ -19,6 +19,8 @@ import 'controllers/beranda_controllers.dart';
 import 'controllers/transaksi_controllers.dart';
 import 'controllers/jadwal_pembayaran_controllers.dart';
 import 'controllers/aplikasi_controllers.dart';
+import 'controllers/tabungan_controllers.dart';
+
 
 // Services
 import 'services/autentikasi_services.dart';
@@ -157,7 +159,14 @@ class MyApp extends StatelessWidget {
             Get.put(KontrolerJadwalPembayaran());
           }),
         ),
-        GetPage(name: '/tabungan', page: () => const TampilanTabungan()),
+        GetPage(
+          name: '/tabungan',
+          page: () => const TampilanTabungan(),
+          binding: BindingsBuilder(() {
+            Get.put(KontrolerTabungan());
+          }),
+        ),
+
         GetPage(name: '/akun', page: () => const TampilanAkun()),
       ],
     );

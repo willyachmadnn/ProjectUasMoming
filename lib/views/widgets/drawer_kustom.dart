@@ -37,13 +37,13 @@ class DrawerKustom extends StatelessWidget {
                         color: theme.primaryColor,
                       ),
                     ),
-                    SizedBox(height: 12),
+                    SizedBox(height: 20),
                     Text(
-                      'SAKUKU',
+                      '"DOMPET PRIBADI DIGITAL"',
                       style: TextStyle(
                         color: theme.textTheme.titleLarge?.color,
                         fontWeight: FontWeight.bold,
-                        fontSize: 20,
+                        fontSize: 15,
                         letterSpacing: 1.5,
                       ),
                     ),
