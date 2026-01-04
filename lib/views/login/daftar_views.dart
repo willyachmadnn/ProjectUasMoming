@@ -13,35 +13,40 @@ class TampilanDaftar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color(0xFFE0E5EC),
+      // Warna asli (Neumorphic Base)
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: Color(0xFF2C3E50)),
+          icon: Icon(
+            Icons.arrow_back_ios,
+            color: Theme.of(context).iconTheme.color,
+          ),
           onPressed: () => Get.back(),
         ),
       ),
       body: Center(
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(24),
+          padding: const EdgeInsets.all(24),
           child: Container(
             constraints: BoxConstraints(
               maxWidth: Get.width > 600 ? 450 : Get.width * 0.9,
             ),
-            padding: EdgeInsets.all(40),
+            padding: const EdgeInsets.all(40),
+            // Dekorasi asli (Efek Timbul)
             decoration: BoxDecoration(
-              color: Color(0xFFE0E5EC),
+              color: const Color(0xFFE0E5EC),
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
                   color: Colors.white.withValues(alpha: 0.8),
-                  offset: Offset(-6, -6),
+                  offset: const Offset(-6, -6),
                   blurRadius: 16,
                 ),
                 BoxShadow(
-                  color: Color(0xFFA3B1C6).withValues(alpha: 0.5),
-                  offset: Offset(6, 6),
+                  color: const Color(0xFFA3B1C6).withValues(alpha: 0.5),
+                  offset: const Offset(6, 6),
                   blurRadius: 16,
                 ),
               ],
@@ -54,35 +59,42 @@ class TampilanDaftar extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF2C3E50),
+                    color: Theme.of(context).textTheme.titleLarge?.color,
                   ),
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 Text(
                   'Bergabunglah bersama kami',
-                  style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                  style: Theme.of(context).textTheme.bodyMedium,
                 ),
-                SizedBox(height: 30),
-                _buildTextField(
+
+                const SizedBox(height: 30),
+
+                // Form Inputs dengan Floating Label
+                _buildFloatingLabelTextField(
+                  context,
                   label: 'Username',
-                  hint: 'Masukan username unik',
                   controller: usernameCtrl,
                   icon: Icons.person_outline,
                 ),
-                SizedBox(height: 20),
-                _buildTextField(
+
+                const SizedBox(height: 20),
+
+                _buildFloatingLabelTextField(
+                  context,
                   label: 'Email',
-                  hint: 'Masukan email anda',
                   controller: emailCtrl,
                   icon: Icons.email_outlined,
+                  inputType: TextInputType.emailAddress,
                 ),
-                SizedBox(height: 20),
 
-                // Password Field with Visibility Toggle
+                const SizedBox(height: 20),
+
+                // Password
                 Obx(
-                  () => _buildTextField(
+                  () => _buildFloatingLabelTextField(
+                    context,
                     label: 'Password',
-                    hint: 'Buat password kuat',
                     controller: passwordCtrl,
                     icon: Icons.lock_outline,
                     isPassword: true,
@@ -92,16 +104,18 @@ class TampilanDaftar extends StatelessWidget {
                   ),
                 ),
 
-                SizedBox(height: 32),
+                const SizedBox(height: 32),
+
+                // Tombol Daftar
                 Obx(
                   () => authCtrl.isLoading.value
-                      ? CircularProgressIndicator()
+                      ? const CircularProgressIndicator()
                       : SizedBox(
                           width: double.infinity,
                           height: 50,
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Color(0xFF34495E),
+                              backgroundColor: const Color(0xFF34495E),
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -113,7 +127,7 @@ class TampilanDaftar extends StatelessWidget {
                               emailCtrl.text,
                               passwordCtrl.text,
                             ),
-                            child: Text(
+                            child: const Text(
                               'Daftar Sekarang',
                               style: TextStyle(
                                 fontSize: 16,
@@ -132,65 +146,75 @@ class TampilanDaftar extends StatelessWidget {
     );
   }
 
-  Widget _buildTextField({
+  // --- WIDGET HELPER INPUT FLOATING LABEL ---
+  Widget _buildFloatingLabelTextField(
+    BuildContext context, {
     required String label,
-    required String hint,
     required TextEditingController controller,
     required IconData icon,
+    TextInputType inputType = TextInputType.text,
     bool isPassword = false,
     bool isObscure = false,
     VoidCallback? onToggleVisibility,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.grey[700],
-            fontSize: 14,
+    return TextField(
+      controller: controller,
+      obscureText: isObscure,
+      keyboardType: inputType,
+      style: TextStyle(
+        fontSize: 14,
+        color: Theme.of(context).textTheme.bodyLarge?.color,
+        fontWeight: FontWeight.w500,
+      ),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(
+          color: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.color?.withOpacity(0.7),
+          fontSize: 14,
+        ),
+        floatingLabelStyle: TextStyle(
+          color: Theme.of(context).primaryColor,
+          fontWeight: FontWeight.bold,
+        ),
+
+        // PERBAIKAN: Menambahkan background putih
+        filled: true,
+        fillColor: Theme.of(context).inputDecorationTheme.fillColor,
+
+        prefixIcon: null,
+
+        suffixIcon: isPassword
+            ? IconButton(
+                iconSize: 20,
+                icon: Icon(
+                  isObscure ? Icons.visibility_off : Icons.visibility,
+                  color: Theme.of(context).iconTheme.color?.withOpacity(0.5),
+                ),
+                onPressed: onToggleVisibility,
+              )
+            : null,
+
+        // Styling Border
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          // Menggunakan warna abu-abu muda agar menyatu dengan putih
+          borderSide: BorderSide(color: Theme.of(context).dividerColor),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: Theme.of(context).primaryColor,
+            width: 2,
           ),
         ),
-        SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 10,
-                offset: Offset(0, 4),
-              ),
-            ],
-          ),
-          child: TextField(
-            controller: controller,
-            obscureText: isPassword ? isObscure : false,
-            decoration: InputDecoration(
-              hintText: hint,
-              hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
-              prefixIcon: Icon(icon, color: Colors.grey[500], size: 20),
-              suffixIcon: isPassword
-                  ? IconButton(
-                      icon: Icon(
-                        isObscure ? Icons.visibility : Icons.visibility_off,
-                        color: Colors.grey[500],
-                        size: 20,
-                      ),
-                      onPressed: onToggleVisibility,
-                    )
-                  : null,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
-              ),
-              contentPadding: EdgeInsets.symmetric(vertical: 16),
-            ),
-          ),
+
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 18,
         ),
-      ],
+      ),
     );
   }
 }

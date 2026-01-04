@@ -39,20 +39,7 @@ class DrawerKustom extends StatelessWidget {
                         color: theme.primaryColor,
                       ),
                     ),
-<<<<<<< HEAD
-                    SizedBox(height: 20),
-                    Text(
-                      '"DOMPET PRIBADI DIGITAL"',
-                      style: TextStyle(
-                        color: theme.textTheme.titleLarge?.color,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                        letterSpacing: 1.5,
-                      ),
-                    ),
-=======
                     SizedBox(height: 12),
->>>>>>> 5d8571e3c728704cc579bcaf3bd0ff4802d7bc85
                   ],
                 ),
               ),
@@ -152,8 +139,8 @@ class ItemMenuKeluar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: Icon(Icons.exit_to_app, color: Colors.red),
-      title: Text('Keluar', style: TextStyle(color: Colors.red)),
+      leading: Icon(Icons.exit_to_app, color: Theme.of(context).colorScheme.error),
+      title: Text('Keluar', style: TextStyle(color: Theme.of(context).colorScheme.error)),
       onTap: () => authCtrl.logout(),
     );
   }

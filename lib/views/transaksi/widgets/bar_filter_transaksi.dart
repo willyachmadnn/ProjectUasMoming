@@ -1,31 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import '../../../controllers/transaksi_controllers.dart';
-import 'dialog_transaksi.dart';
+import '../../../../controllers/transaksi_controllers.dart'; // Sesuaikan path import controller
 
 class BarFilterTransaksi extends StatelessWidget {
-  final KontrolerTransaksi controller;
-
-  const BarFilterTransaksi({super.key, required this.controller});
+  const BarFilterTransaksi({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isSmallScreen = constraints.maxWidth < 800;
+    // Ambil controller yang sudah di-put di view induk
+    final controller = Get.find<KontrolerTransaksi>();
+    final dateFormat = DateFormat('dd/MM/yyyy');
 
-        return Container(
-          padding: EdgeInsets.only(bottom: 16),
-          child: Wrap(
-            spacing: 16,
-            runSpacing: 16,
-            crossAxisAlignment: WrapCrossAlignment.center,
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      height: 50, // Tinggi fix agar rapi
+      child: Obx(() {
+        // --- MODE 1: PENCARIAN AKTIF ---
+        if (controller.isSearchOpen.value) {
+          return Row(
             children: [
-              // Search Bar
-              SizedBox(
-                width: isSmallScreen ? double.infinity : 250,
+              Expanded(
                 child: TextField(
+                  autofocus: true,
+                  onChanged: controller.onSearchChanged,
+                  style: TextStyle(
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                  ),
                   decoration: InputDecoration(
                     hintText: 'Cari transaksi...',
                     hintStyle: TextStyle(color: Theme.of(context).hintColor),
@@ -33,198 +34,173 @@ class BarFilterTransaksi extends StatelessWidget {
                       Icons.search,
                       color: Theme.of(context).iconTheme.color,
                     ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(
-                        color: Theme.of(context).dividerColor,
-                      ),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(
-                        color: Theme.of(context).dividerColor,
-                      ),
-                    ),
                     filled: true,
                     fillColor: Theme.of(context).cardColor,
-                    contentPadding: EdgeInsets.symmetric(
+                    contentPadding: const EdgeInsets.symmetric(
                       vertical: 0,
-                      horizontal: 16,
+                      horizontal: 20,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
                     ),
                   ),
-                  onChanged: controller.onSearchChanged,
                 ),
               ),
-
-              // Category Dropdown
-              Obx(
-                () => Container(
-                  width: isSmallScreen ? (constraints.maxWidth / 2 - 8) : 180,
-                  padding: EdgeInsets.symmetric(horizontal: 12),
+              const SizedBox(width: 10),
+              // Tombol Close (X)
+              GestureDetector(
+                onTap: () => controller.toggleSearch(),
+                child: Container(
+                  width: 50,
+                  height: 50,
                   decoration: BoxDecoration(
-                    color: Theme.of(context).cardColor,
-                    border: Border.all(color: Theme.of(context).dividerColor),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: controller.selectedCategory.value,
-                      icon: Icon(
-                        Icons.keyboard_arrow_down,
-                        color: Theme.of(context).iconTheme.color,
-                      ),
-                      isExpanded: true,
-                      dropdownColor: Theme.of(context).cardColor,
-                      style: TextStyle(
-                        color: Theme.of(context).textTheme.bodyLarge?.color,
-                      ),
-                      items:
-                          [
-                            'Semua Kategori',
-                            ...controller.categories.map((c) => c.name).toSet(),
-                          ].map((String value) {
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(value),
-                            );
-                          }).toList(),
-                      onChanged: controller.onCategoryChanged,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.error.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.error.withValues(alpha: 0.3),
                     ),
+                  ),
+                  child: Icon(
+                    Icons.close,
+                    color: Theme.of(context).colorScheme.error,
                   ),
                 ),
               ),
-
-              // Month Dropdown (Simplified as 'Bulan Ini' etc or actual months)
-              // For now, implementing a basic Month selector logic
-              Obx(
-                () => Container(
-                  width: isSmallScreen ? (constraints.maxWidth / 2 - 8) : 150,
-                  padding: EdgeInsets.symmetric(horizontal: 12),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).cardColor,
-                    border: Border.all(color: Theme.of(context).dividerColor),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<DateTime>(
-                      value: DateTime(
-                        controller.selectedMonth.value.year,
-                        controller.selectedMonth.value.month,
-                      ),
-                      icon: Icon(
-                        Icons.keyboard_arrow_down,
-                        color: Theme.of(context).iconTheme.color,
-                      ),
-                      isExpanded: true,
-                      dropdownColor: Theme.of(context).cardColor,
-                      style: TextStyle(
-                        color: Theme.of(context).textTheme.bodyLarge?.color,
-                      ),
-                      // Generate last 12 months
-                      items: List.generate(12, (index) {
-                        final date = DateTime.now().subtract(
-                          Duration(days: 30 * index),
-                        );
-                        final normalizedDate = DateTime(date.year, date.month);
-                        return DropdownMenuItem<DateTime>(
-                          value: normalizedDate,
-                          child: Text(
-                            DateFormat(
-                              'MMMM yyyy',
-                              'id_ID',
-                            ).format(normalizedDate),
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: controller.onMonthChanged,
-                    ),
-                  ),
-                ),
-              ),
-
-              if (!isSmallScreen) Spacer(),
-
-              // Buttons
-              if (isSmallScreen) ...[
-                SizedBox(width: double.infinity, height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () => Get.dialog(
-                          DialogTambahKategori(controller: controller),
-                        ),
-                        icon: Icon(Icons.add),
-                        label: Text('Kategori'),
-                        style: OutlinedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 16),
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () => Get.dialog(
-                          DialogTambahTransaksi(controller: controller),
-                        ),
-                        icon: Icon(Icons.add, color: Colors.white),
-                        label: Text(
-                          'Transaksi',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Theme.of(context).primaryColor,
-                          padding: EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ] else ...[
-                // Add Category Button
-                OutlinedButton.icon(
-                  onPressed: () =>
-                      Get.dialog(DialogTambahKategori(controller: controller)),
-                  icon: Icon(Icons.add),
-                  label: Text('Tambah Kategori'),
-                  style: OutlinedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-
-                SizedBox(width: 16),
-
-                // Add Transaction Button
-                ElevatedButton.icon(
-                  onPressed: () =>
-                      Get.dialog(DialogTambahTransaksi(controller: controller)),
-                  icon: Icon(Icons.add, color: Colors.white),
-                  label: Text(
-                    'Tambah Transaksi',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).primaryColor,
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-              ],
             ],
-          ),
+          );
+        }
+
+        // --- MODE 2: DEFAULT HEADER (Search Icon - Kalender - Kategori) ---
+        return Row(
+          children: [
+            // 1. TOMBOL SEARCH (KIRI)
+            GestureDetector(
+              onTap: () => controller.toggleSearch(),
+              child: Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor,
+                  borderRadius: BorderRadius.circular(12),
+                  // Efek border tipis agar terlihat seperti tombol
+                  border: Border.all(color: Theme.of(context).dividerColor),
+                ),
+                child: Icon(
+                  Icons.search,
+                  color: Theme.of(context).primaryColor,
+                ),
+              ),
+            ),
+
+            const SizedBox(width: 10),
+
+            // 2. KALENDER (TENGAH - Expanded)
+            Expanded(
+              flex: 3,
+              child: GestureDetector(
+                onTap: () async {
+                  // Munculkan Date Range Picker bawaan Flutter
+                  DateTimeRange? picked = await showDateRangePicker(
+                    context: context,
+                    firstDate: DateTime(2020),
+                    lastDate: DateTime(2030),
+                    initialDateRange: controller.selectedDateRange.value,
+                    builder: (context, child) {
+                      return Theme(
+                        data: Theme.of(context), // Gunakan tema aplikasi
+                        child: child!,
+                      );
+                    },
+                  );
+                  if (picked != null) {
+                    controller.updateDateRange(picked);
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardColor,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Theme.of(context).dividerColor),
+                  ),
+                  alignment: Alignment.centerLeft,
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.calendar_today,
+                        size: 16,
+                        color: Theme.of(context).hintColor,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          // Format: 01/01/2026 - 31/01/2026
+                          "${dateFormat.format(controller.selectedDateRange.value.start)} - ${dateFormat.format(controller.selectedDateRange.value.end)}",
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).textTheme.bodyLarge?.color,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(width: 10),
+
+            // 3. KATEGORI (KANAN - Expanded)
+            Expanded(
+              flex: 2,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Theme.of(context).dividerColor),
+                ),
+                alignment: Alignment.center,
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: controller.selectedCategory.value,
+                    isExpanded: true,
+                    icon: Icon(
+                      Icons.keyboard_arrow_down,
+                      color: Theme.of(context).iconTheme.color,
+                    ),
+                    dropdownColor: Theme.of(context).cardColor,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
+                    ),
+                    items:
+                        [
+                          'Semua Kategori',
+                          ...controller.categories.map((c) => c.name).toSet(),
+                        ].map((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value, overflow: TextOverflow.ellipsis),
+                          );
+                        }).toList(),
+                    onChanged: (val) {
+                      if (val != null) controller.onCategoryChanged(val);
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ],
         );
-      },
+      }),
     );
   }
 }

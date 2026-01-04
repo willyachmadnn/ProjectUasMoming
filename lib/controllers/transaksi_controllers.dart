@@ -10,38 +10,37 @@ import '../views/widgets/snackbar_kustom.dart';
 class KontrolerTransaksi extends GetxController {
   final LayananTransaksi _service = LayananTransaksi();
 
-  // State
   var transactions = <ModelTransaksi>[].obs;
   var categories = <ModelKategori>[].obs;
   var isLoading = false.obs;
 
-  // Filters
   var searchQuery = ''.obs;
   var selectedCategory = 'Semua Kategori'.obs;
-  var selectedMonth = DateTime.now().obs;
 
-  // Pagination
+  var selectedDateRange = DateTimeRange(
+    start: DateTime.now().subtract(const Duration(days: 30)),
+    end: DateTime.now(),
+  ).obs;
+
+  var isSearchOpen = false.obs;
+
   var currentPage = 1.obs;
   final int limit = 10;
   final List<DocumentSnapshot> _paginationStack = [];
-
-  // Keep track of raw docs for pagination anchor
   List<DocumentSnapshot> _currentRawDocs = [];
 
-  // Stream Subscription
   StreamSubscription? _transactionSubscription;
 
   @override
   void onInit() {
     super.onInit();
-    // _service.seedDefaultCategories(); // Removed as per user request
     fetchCategories();
     _bindTransactionsStream();
 
     debounce(
       searchQuery,
-      (_) => _resetAndBind(),
-      time: Duration(milliseconds: 500),
+          (_) => _resetAndBind(),
+      time: const Duration(milliseconds: 500),
     );
   }
 
@@ -51,7 +50,29 @@ class KontrolerTransaksi extends GetxController {
     super.onClose();
   }
 
-  // ... (rest of the file content needs to be updated too if it references old types)
+  void toggleSearch() {
+    isSearchOpen.value = !isSearchOpen.value;
+    if (!isSearchOpen.value) {
+      searchQuery.value = '';
+      _resetAndBind();
+    }
+  }
+
+  void onSearchChanged(String val) {
+    searchQuery.value = val;
+  }
+
+  void updateDateRange(DateTimeRange newRange) {
+    selectedDateRange.value = newRange;
+    _resetAndBind();
+  }
+
+  void onCategoryChanged(String? val) {
+    if (val != null) {
+      selectedCategory.value = val;
+      _resetAndBind();
+    }
+  }
 
   void fetchCategories() {
     _service.getCategories().listen((data) {
@@ -63,7 +84,6 @@ class KontrolerTransaksi extends GetxController {
     isLoading.value = true;
     _transactionSubscription?.cancel();
 
-    // Reset pagination stack if starting fresh
     if (startAfter == null) {
       _paginationStack.clear();
       currentPage.value = 1;
@@ -71,38 +91,37 @@ class KontrolerTransaksi extends GetxController {
 
     _transactionSubscription = _service
         .getTransactionsStream(
-          limit: limit,
-          startAfter: startAfter,
-          category: selectedCategory.value,
-          month: selectedMonth.value,
-        )
+      limit: limit,
+      startAfter: startAfter,
+      category: selectedCategory.value,
+    )
         .listen(
           (snapshot) {
-            _currentRawDocs = snapshot.docs;
+        _currentRawDocs = snapshot.docs;
 
-            List<ModelTransaksi> newTransactions = snapshot.docs.map((doc) {
-              return ModelTransaksi.fromFirestore(doc);
-            }).toList();
+        List<ModelTransaksi> newTransactions = snapshot.docs.map((doc) {
+          return ModelTransaksi.fromFirestore(doc);
+        }).toList();
 
-            // Client-side search (filter existing list)
-            if (searchQuery.value.isNotEmpty) {
-              newTransactions = newTransactions
-                  .where(
-                    (t) => t.description.toLowerCase().contains(
-                      searchQuery.value.toLowerCase(),
-                    ),
-                  )
-                  .toList();
-            }
+        newTransactions = newTransactions.where((t) {
+          return t.date.isAfter(selectedDateRange.value.start.subtract(const Duration(seconds: 1))) &&
+              t.date.isBefore(selectedDateRange.value.end.add(const Duration(days: 1)));
+        }).toList();
 
-            transactions.assignAll(newTransactions);
-            isLoading.value = false;
-          },
-          onError: (e) {
-            SnackbarKustom.error('Error', 'Failed to load transactions: $e');
-            isLoading.value = false;
-          },
-        );
+        if (searchQuery.value.isNotEmpty) {
+          newTransactions = newTransactions
+              .where((t) => t.description.toLowerCase().contains(searchQuery.value.toLowerCase()))
+              .toList();
+        }
+
+        transactions.assignAll(newTransactions);
+        isLoading.value = false;
+      },
+      onError: (e) {
+        SnackbarKustom.error('Error', 'Failed to load transactions: $e');
+        isLoading.value = false;
+      },
+    );
   }
 
   void _resetAndBind() {
@@ -111,41 +130,19 @@ class KontrolerTransaksi extends GetxController {
     _bindTransactionsStream(startAfter: null);
   }
 
-  void onSearchChanged(String val) {
-    searchQuery.value = val;
-  }
-
-  void onCategoryChanged(String? val) {
-    if (val != null) {
-      selectedCategory.value = val;
-      _resetAndBind();
-    }
-  }
-
-  void onMonthChanged(DateTime? val) {
-    if (val != null) {
-      selectedMonth.value = val;
-      _resetAndBind();
-    }
-  }
-
-  // CRUD Operations
   Future<void> addTransaction(ModelTransaksi transaction) async {
     try {
       await _service.addTransaction(transaction);
 
-      // --- UX IMPROVEMENT: Reset Filters to Show New Data ---
-      // 1. Force date filter to the transaction's month
-      selectedMonth.value = transaction.date;
+      selectedDateRange.value = DateTimeRange(
+          start: transaction.date.subtract(const Duration(days: 1)),
+          end: transaction.date.add(const Duration(days: 1))
+      );
 
-      // 2. Reset category filter to ensure visibility
       selectedCategory.value = 'Semua Kategori';
+      _bindTransactionsStream();
 
-      // 3. Refresh stream
-      _bindTransactionsStream(); 
-      // -----------------------------------------------------
-
-      Get.back(); // Close dialog
+      Get.back();
       SnackbarKustom.sukses('Sukses', 'Transaksi berhasil ditambahkan');
     } catch (e) {
       SnackbarKustom.error('Error', 'Gagal menambahkan transaksi: $e');
@@ -155,7 +152,7 @@ class KontrolerTransaksi extends GetxController {
   Future<void> updateTransaction(ModelTransaksi transaction) async {
     try {
       await _service.updateTransaction(transaction);
-      Get.back(); // Close dialog
+      Get.back();
       SnackbarKustom.sukses('Sukses', 'Transaksi berhasil diperbarui');
       _resetAndBind();
     } catch (e) {
@@ -167,15 +164,15 @@ class KontrolerTransaksi extends GetxController {
     try {
       Get.dialog(
         AlertDialog(
-          title: Text('Konfirmasi Hapus'),
-          content: Text('Apakah Anda yakin ingin menghapus transaksi ini?'),
+          title: const Text('Konfirmasi Hapus'),
+          content: const Text('Apakah Anda yakin ingin menghapus transaksi ini?'),
           actions: [
-            TextButton(child: Text('Batal'), onPressed: () => Get.back()),
+            TextButton(child: const Text('Batal'), onPressed: () => Get.back()),
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              child: Text('Hapus', style: TextStyle(color: Colors.white)),
+              child: const Text('Hapus', style: TextStyle(color: Colors.white)),
               onPressed: () async {
-                Get.back(); // Close confirmation dialog
+                Get.back();
                 await _service.deleteTransaction(id);
                 SnackbarKustom.sukses('Sukses', 'Transaksi berhasil dihapus');
                 _resetAndBind();
@@ -192,18 +189,32 @@ class KontrolerTransaksi extends GetxController {
   Future<void> addCategory(ModelKategori category) async {
     try {
       await _service.addCategory(category);
-      // No need to manual refresh as categories are streamed
       SnackbarKustom.sukses('Sukses', 'Kategori berhasil ditambahkan');
     } catch (e) {
       SnackbarKustom.error('Error', 'Gagal menambahkan kategori: $e');
     }
   }
 
-  // Navigation
+  Future<void> updateCategory(ModelKategori category) async {
+    try {
+      await _service.updateCategory(category);
+      SnackbarKustom.sukses('Sukses', 'Kategori berhasil diperbarui');
+    } catch (e) {
+      SnackbarKustom.error('Error', 'Gagal memperbarui kategori: $e');
+    }
+  }
+
+  Future<void> deleteCategory(String id) async {
+    try {
+      await _service.deleteCategory(id);
+      SnackbarKustom.sukses('Sukses', 'Kategori berhasil dihapus');
+    } catch (e) {
+      SnackbarKustom.error('Error', 'Gagal menghapus kategori: $e');
+    }
+  }
+
   void nextPage() {
     if (_currentRawDocs.isNotEmpty) {
-      // Push the last document of the current page to the stack
-      // This document becomes the 'startAfter' cursor for the next page
       _paginationStack.add(_currentRawDocs.last);
       currentPage.value++;
       _bindTransactionsStream(startAfter: _paginationStack.last);
@@ -212,15 +223,11 @@ class KontrolerTransaksi extends GetxController {
 
   void prevPage() {
     if (currentPage.value > 1) {
-      // Remove the last cursor to go back one step
       if (_paginationStack.isNotEmpty) {
         _paginationStack.removeLast();
       }
-
       currentPage.value--;
 
-      // If stack is empty, we are back at page 1 (startAfter: null)
-      // If stack has items, the new last item is the cursor for the current page
       DocumentSnapshot? startAfter = _paginationStack.isEmpty
           ? null
           : _paginationStack.last;

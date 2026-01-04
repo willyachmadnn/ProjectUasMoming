@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'controllers/tabungan_controllers.dart';
 import 'firebase_options.dart';
 
 // Views
@@ -12,6 +14,8 @@ import 'views/transaksi/transaksi_views.dart';
 import 'views/jadwal_pembayaran/jadwal_pembayaran_views.dart';
 import 'views/tabungan/tabungan_views.dart';
 import 'views/akun/akun_views.dart';
+import 'views/login/lupa_password_views.dart';
+import 'views/login/daftar_views.dart';
 
 // Controllers
 import 'controllers/autentikasi_controllers.dart';
@@ -19,19 +23,20 @@ import 'controllers/beranda_controllers.dart';
 import 'controllers/transaksi_controllers.dart';
 import 'controllers/jadwal_pembayaran_controllers.dart';
 import 'controllers/aplikasi_controllers.dart';
-import 'controllers/tabungan_controllers.dart';
-
 
 // Services
 import 'services/autentikasi_services.dart';
-import 'views/login/lupa_password_views.dart';
-import 'views/login/daftar_views.dart';
+
+// CATATAN: GlobalKey manual DIHAPUS agar tidak bentrok dengan GetX
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize Date Formatting
   await initializeDateFormatting('id_ID', null);
+
+  // Initialize GetStorage
+  await GetStorage.init();
 
   // Initialize Firebase
   try {
@@ -52,14 +57,12 @@ void main() async {
 
 Future<void> initServices() async {
   // Services
-  // Initialize Firebase Auth Service
   final authService = LayananAutentikasiFirebase();
   await authService.init();
   Get.put<LayananAutentikasi>(authService);
 
   // Controllers
   Get.put(KontrolerAplikasi());
-  // Inject KontrolerAutentikasi with the service instance
   Get.put(KontrolerAutentikasi(Get.find<LayananAutentikasi>()));
 }
 
@@ -69,6 +72,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
+      // PERBAIKAN: Jangan pasang navigatorKey di sini.
       title: 'Sakuku',
       debugShowCheckedModeBanner: false,
       localizationsDelegates: const [
@@ -162,11 +166,11 @@ class MyApp extends StatelessWidget {
         GetPage(
           name: '/tabungan',
           page: () => const TampilanTabungan(),
+          // TAMBAHKAN INI:
           binding: BindingsBuilder(() {
             Get.put(KontrolerTabungan());
           }),
         ),
-
         GetPage(name: '/akun', page: () => const TampilanAkun()),
       ],
     );

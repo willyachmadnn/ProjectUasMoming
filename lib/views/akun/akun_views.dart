@@ -8,7 +8,7 @@ class TampilanAkun extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBarKustom(title: 'Pengaturan'),
+      appBar: AppBarKustom(),
       drawer: DrawerKustom(),
       body: Center(child: Text('Halaman Pengaturan segera rilis')),
     );

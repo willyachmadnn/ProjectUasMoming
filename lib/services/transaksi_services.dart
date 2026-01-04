@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/transaksi_models.dart';
 import '../models/kategori_models.dart';
-
 import 'package:firebase_auth/firebase_auth.dart';
 
 class LayananTransaksi {
@@ -37,30 +36,18 @@ class LayananTransaksi {
 
     Query query = _transactionsRef.orderBy('date', descending: true);
 
-    // Note: Applying multiple filters (category + date range) with orderBy('date')
-    // typically requires a Composite Index in Firestore.
-    // To ensure the app runs without manual indexing errors for the user,
-    // we will apply strict filters (where) only if they don't conflict with sorting,
-    // or we will filter client-side for complex combinations if index is missing.
-
     // Filter by Month
     if (month != null) {
       final startOfMonth = DateTime(month.year, month.month, 1);
       final endOfMonth = DateTime(month.year, month.month + 1, 0, 23, 59, 59);
       query = query
           .where(
-            'date',
-            isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth),
-          )
+        'date',
+        isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth),
+      )
           .where('date', isLessThanOrEqualTo: Timestamp.fromDate(endOfMonth));
     }
 
-    // Filter by Category
-    // WARNING: 'where(category)' + 'orderBy(date)' requires an index.
-    // If the user hasn't created it, this will crash.
-    // For resilience, we could fetch all and filter in Dart if category is selected.
-    // But let's try to apply it and assume user might create index later for advanced features.
-    // However, the "Default View" (No category) MUST work without index.
     if (category != null && category != 'Semua Kategori') {
       query = query.where('category', isEqualTo: category);
     }
@@ -83,8 +70,8 @@ class LayananTransaksi {
       transactions = transactions
           .where(
             (t) =>
-                t.description.toLowerCase().contains(searchQuery.toLowerCase()),
-          )
+            t.description.toLowerCase().contains(searchQuery.toLowerCase()),
+      )
           .toList();
     }
 
@@ -113,9 +100,9 @@ class LayananTransaksi {
       final endOfMonth = DateTime(month.year, month.month + 1, 0, 23, 59, 59);
       query = query
           .where(
-            'date',
-            isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth),
-          )
+        'date',
+        isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth),
+      )
           .where('date', isLessThanOrEqualTo: Timestamp.fromDate(endOfMonth));
     }
 
@@ -135,7 +122,6 @@ class LayananTransaksi {
   // Add Transaction
   Future<void> addTransaction(ModelTransaksi transaction) async {
     if (_userId == null) {
-      // Fallback or Error
       print("Warning: Adding transaction as Guest");
     }
     final data = transaction.toJson();
@@ -153,9 +139,21 @@ class LayananTransaksi {
     await _transactionsRef.doc(id).delete();
   }
 
+  // --- CATEGORY METHODS ---
+
   // Add Category
   Future<void> addCategory(ModelKategori category) async {
     await _categoriesRef.add(category.toJson());
+  }
+
+  // Update Category (YANG PERLU DITAMBAHKAN)
+  Future<void> updateCategory(ModelKategori category) async {
+    await _categoriesRef.doc(category.id).update(category.toJson());
+  }
+
+  // Delete Category (YANG PERLU DITAMBAHKAN)
+  Future<void> deleteCategory(String id) async {
+    await _categoriesRef.doc(id).delete();
   }
 
   // Get Categories Stream
@@ -168,54 +166,4 @@ class LayananTransaksi {
           .toList();
     });
   }
-
-  // Seed Default Categories
-  // Future<void> seedDefaultCategories() async {
-  //   if (_userId == null) return;
-  //
-  //   final defaultCategories = [
-  //     {'name': 'Hiburan', 'type': 'expense'},
-  //     {'name': 'Transportasi', 'type': 'expense'},
-  //     {'name': 'Makan', 'type': 'expense'},
-  //   ];
-  //
-  //   try {
-  //     final snapshot = await _categoriesRef.get();
-  //     final existingNames =
-  //         snapshot.docs.map((doc) {
-  //           final data = doc.data() as Map<String, dynamic>;
-  //           return data['name'] as String;
-  //         }).toSet();
-  //
-  //     for (var catData in defaultCategories) {
-  //       if (!existingNames.contains(catData['name'])) {
-  //         final data = Map<String, dynamic>.from(catData);
-  //         data['uid'] = _userId;
-  //         await _categoriesRef.add(data);
-  //       }
-  //     }
-  //   } catch (e) {
-  //     debugPrint('Error seeding categories: $e');
-  //   }
-  // }
-
-  // Helpers for other controllers
-  // Stream<List<ModelTransaksi>> getRecentTransactions() {
-  //   if (_userId == null) return Stream.value([]);
-  //   return _transactionsRef
-  //       .orderBy('date', descending: true)
-  //       .limit(5)
-  //       .snapshots()
-  //       .map((snapshot) {
-  //         return snapshot.docs
-  //             .map((doc) => ModelTransaksi.fromFirestore(doc))
-  //             .toList();
-  //       });
-  // }
-
-  // Need to implement other methods called by BerandaController if they exist there?
-  // Previous analysis showed: getUpcomingSchedules, getSavingsGoals, getFinancialSummary, getThreeMonthsStats, getBudgetLimit
-  // These likely live in LayananTransaksi too but were truncated in previous read.
-  // I must be careful not to delete them.
-  // I will read the file AGAIN with a larger limit to ensure I don't overwrite hidden methods.
 }

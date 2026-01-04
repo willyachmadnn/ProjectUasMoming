@@ -29,41 +29,42 @@ class LayananBeranda {
         );
   }
 
-  // 2. Hitung Ringkasan Keuangan (Pemasukan, Pengeluaran, Saldo)
-  Stream<Map<String, dynamic>> getFinancialSummary() {
-    if (_uid.isEmpty) return Stream.value({});
+  // 2. Ambil SEMUA Transaksi (untuk kalkulasi total & chart)
+  Stream<List<ModelTransaksi>> getAllTransactions() {
+    if (_uid.isEmpty) return Stream.value([]);
 
-    // Kita ambil semua transaksi user ini untuk dihitung totalnya
     return _db
-        .collection('transactions') // Updated to Root Collection
-        .where('uid', isEqualTo: _uid) // Filter by UID
+        .collection('transactions')
+        .where('uid', isEqualTo: _uid)
+        .orderBy('date', descending: true) // Tetap urutkan tanggal
         .snapshots()
-        .map((snapshot) {
-          double income = 0;
-          double expense = 0;
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => ModelTransaksi.fromFirestore(doc))
+              .toList(),
+        );
+  }
 
-          for (var doc in snapshot.docs) {
-            final data = doc.data();
-            // Cek tipe: jika income tambah ke income, jika expense tambah ke expense
-            // Pastikan field 'type' atau 'isExpense' sesuai dengan Model Anda
-            // Di sini saya asumsi pakai 'type' string seperti diskusi sebelumnya
-            bool isExpense =
-                data['type'] == 'expense' || data['isExpense'] == true;
-            double amount = (data['amount'] ?? 0).toDouble();
+  // Deprecated: Logic dipindah ke Controller agar bisa reuse data transaksi
+  Stream<Map<String, dynamic>> getFinancialSummary() {
+    return getAllTransactions().map((transactions) {
+       double income = 0;
+       double expense = 0;
 
-            if (isExpense) {
-              expense += amount;
-            } else {
-              income += amount;
-            }
-          }
+       for (var tx in transactions) {
+         if (tx.isExpense) {
+           expense += tx.amount;
+         } else {
+           income += tx.amount;
+         }
+       }
 
-          return {
-            'income': income,
-            'expense': expense,
-            'balance': income - expense,
-          };
-        });
+       return {
+         'income': income,
+         'expense': expense,
+         'balance': income - expense,
+       };
+    });
   }
 
   // 3. Ambil Jadwal Pembayaran (User ini saja)

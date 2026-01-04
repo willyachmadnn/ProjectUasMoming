@@ -4,141 +4,254 @@ import 'package:intl/intl.dart';
 import '../../controllers/beranda_controllers.dart';
 import '../widgets/drawer_kustom.dart';
 import '../widgets/app_bar_kustom.dart';
-import 'widgets/grafik_analisis_keuangan.dart';
-import 'widgets/kartu_jadwal_pembayaran.dart';
-import 'widgets/kartu_target_tabungan.dart';
-import 'widgets/tabel_transaksi_terbaru.dart';
+import 'widgets/grafik_donat.dart';
+import 'widgets/grafik_line.dart';
 
 class TampilanBeranda extends StatelessWidget {
   const TampilanBeranda({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final KontrolerBeranda controller = Get.isRegistered<KontrolerBeranda>()
-        ? Get.find<KontrolerBeranda>()
-        : Get.put(KontrolerBeranda());
+    final KontrolerBeranda controller = Get.put(KontrolerBeranda());
+
+    // 1. Definisikan Format Rupiah Penuh
+    final fullCurrencyFormat = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBarKustom(title: 'Beranda'),
+      appBar: AppBarKustom(),
       drawer: DrawerKustom(),
       body: RefreshIndicator(
         onRefresh: () async {
           controller.bindStreams();
         },
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(20.0), // Generous padding
+          padding: EdgeInsets.all(20.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 1. Top Section: Financial Overview & Budget Status (Unified Card)
-              _buildTopSection(context, controller),
-
-              SizedBox(height: 20),
-
-              // 2. Bottom Section: Split View
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  // Desktop / Tablet Landscape
-                  if (constraints.maxWidth > 900) {
-                    return IntrinsicHeight(
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          // Left Column: Financial Analysis (35%)
-                          Expanded(
-                            flex: 35,
-                            child: Obx(
-                              () => GrafikAnalisisKeuangan(
-                                data: controller.expensesByCategory,
-                                totalIncome: controller.totalIncome.value,
-                                totalExpense: controller.totalExpense.value,
+              // --- 1. BAGIAN HEADER (SPLIT LAYOUT) ---
+              IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // KIRI: TOTAL SALDO
+                    Expanded(
+                      flex: 6,
+                      child: Container(
+                        padding: EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).cardColor,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Total Saldo',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 12,
                               ),
                             ),
-                          ),
-                          SizedBox(width: 20),
-                          // Right Column: Bills, Savings, Transactions (65%)
+                            SizedBox(height: 8),
+                            Obx(
+                              () => Text(
+                                fullCurrencyFormat.format(
+                                  controller.totalBalance.value,
+                                ),
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).primaryColor,
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: 12),
+                            Obx(
+                              () => Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color:
+                                      (controller.isTrendUp.value
+                                              ? Colors.green
+                                              : Colors.red)
+                                          .withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      controller.isTrendUp.value
+                                          ? Icons.arrow_outward
+                                          : Icons.arrow_downward,
+                                      color: controller.isTrendUp.value
+                                          ? Colors.green
+                                          : Colors.red,
+                                      size: 12,
+                                    ),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      "${controller.trendPercentage.value.toStringAsFixed(1)}% bulan lalu",
+                                      style: TextStyle(
+                                        color: controller.isTrendUp.value
+                                            ? Colors.green
+                                            : Colors.red,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    SizedBox(width: 12),
+
+                    // KANAN: INCOME & EXPENSE
+                    Expanded(
+                      flex: 4,
+                      child: Column(
+                        children: [
                           Expanded(
-                            flex: 65,
-                            child: Column(
-                              children: [
-                                // Bills and Savings Row
-                                IntrinsicHeight(
-                                  child: Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.stretch,
-                                    children: [
-                                      Expanded(
-                                        child: Obx(
-                                          () => KartuJadwalPembayaran(
-                                            schedules: controller
-                                                .upcomingSchedules
-                                                .toList(),
-                                          ),
-                                        ),
-                                      ),
-                                      SizedBox(width: 20),
-                                      Expanded(
-                                        child: Obx(
-                                          () => KartuTargetTabungan(
-                                            goals: controller.savingsGoals
-                                                .toList(),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                SizedBox(height: 20),
-                                // Recent Transactions
-                                Obx(
-                                  () => TabelTransaksiTerbaru(
-                                    transactions: controller.recentTransactions
-                                        .toList(),
-                                  ),
-                                ),
-                              ],
+                            child: _buildSmallCard(
+                              context,
+                              "Pemasukan",
+                              controller.totalIncome,
+                              Colors.blue,
+                            ),
+                          ),
+                          SizedBox(height: 12),
+                          Expanded(
+                            child: _buildSmallCard(
+                              context,
+                              "Pengeluaran",
+                              controller.totalExpense,
+                              Colors.red,
                             ),
                           ),
                         ],
                       ),
-                    );
-                  }
-                  // Tablet Portrait / Mobile
-                  else {
-                    return Column(
-                      children: [
-                        Obx(
-                          () => GrafikAnalisisKeuangan(
-                            data: controller.expensesByCategory,
-                            totalIncome: controller.totalIncome.value,
-                            totalExpense: controller.totalExpense.value,
-                          ),
-                        ),
-                        SizedBox(height: 20),
-                        Obx(
-                          () => KartuJadwalPembayaran(
-                            schedules: controller.upcomingSchedules.toList(),
-                          ),
-                        ),
-                        SizedBox(height: 20),
-                        Obx(
-                          () => KartuTargetTabungan(
-                            goals: controller.savingsGoals.toList(),
-                          ),
-                        ),
-                        SizedBox(height: 20),
-                        Obx(
-                          () => TabelTransaksiTerbaru(
-                            transactions: controller.recentTransactions
-                                .toList(),
-                          ),
-                        ),
-                      ],
-                    );
-                  }
-                },
+                    ),
+                  ],
+                ),
               ),
+
+              SizedBox(height: 20),
+
+              // --- 2. STATUS ANGGARAN (Full Width) ---
+              Container(
+                padding: EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Status Anggaran",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                    SizedBox(height: 15),
+                    Obx(() {
+                      double limit = controller.budgetLimit.value;
+                      double used = controller.totalExpense.value;
+                      double percentage = limit == 0
+                          ? 0
+                          : (used / limit).clamp(0.0, 1.0);
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: LinearProgressIndicator(
+                              value: percentage,
+                              minHeight: 12,
+                              backgroundColor: Colors.grey.withOpacity(0.1),
+                              color: percentage > 0.9
+                                  ? Colors.red
+                                  : Colors.green,
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          // --- PERBAIKAN DI SINI (Status Anggaran Full Format) ---
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                '${fullCurrencyFormat.format(used)} terpakai',
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 11,
+                                ),
+                              ),
+                              Text(
+                                'dari ${fullCurrencyFormat.format(limit)}',
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      );
+                    }),
+                  ],
+                ),
+              ),
+
+              SizedBox(height: 20),
+
+              // --- 3. GRAFIK SEJAJAR ---
+              Row(
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      height: 200,
+                      child: Obx(
+                        () => GrafikDonat(
+                          data: controller.categoryStats,
+                          total: controller.totalExpense.value,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: SizedBox(
+                      height: 200,
+                      child: Obx(
+                        () => GrafikLine(
+                          incomeSpots: controller.incomeSpots,
+                          expenseSpots: controller.expenseSpots,
+                          maxY: controller.maxChartY.value,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              SizedBox(height: 30),
             ],
           ),
         ),
@@ -146,230 +259,48 @@ class TampilanBeranda extends StatelessWidget {
     );
   }
 
-  Widget _buildTopSection(BuildContext context, KontrolerBeranda controller) {
-    return Container(
-      padding: EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Ringkasan Keuangan',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).textTheme.bodyLarge?.color,
-                ),
-              ),
-              // Menu: Akun placeholder if needed, usually in AppBar
-            ],
-          ),
-          SizedBox(height: 24),
-
-          // Stats Row
-          LayoutBuilder(
-            builder: (context, constraints) {
-              bool isSmall = constraints.maxWidth < 600;
-
-              if (isSmall) {
-                return Column(
-                  children: [
-                    Obx(
-                      () => _buildStatItem(
-                        context,
-                        'Total Saldo',
-                        controller.totalBalance.value,
-                        isBig: true,
-                      ),
-                    ),
-                    SizedBox(height: 16),
-                    Obx(
-                      () => _buildStatItem(
-                        context,
-                        'Pemasukan',
-                        controller.totalIncome.value,
-                      ),
-                    ),
-                    SizedBox(height: 16),
-                    Obx(
-                      () => _buildStatItem(
-                        context,
-                        'Pengeluaran',
-                        controller.totalExpense.value,
-                      ),
-                    ),
-                  ],
-                );
-              }
-
-              return Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Obx(
-                      () => _buildStatItem(
-                        context,
-                        'Total Saldo',
-                        controller.totalBalance.value,
-                        isBig: true,
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 20),
-                  Expanded(
-                    child: Obx(
-                      () => _buildStatItem(
-                        context,
-                        'Pemasukan',
-                        controller.totalIncome.value,
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 20),
-                  Expanded(
-                    child: Obx(
-                      () => _buildStatItem(
-                        context,
-                        'Pengeluaran',
-                        controller.totalExpense.value,
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
-
-          SizedBox(height: 32),
-
-          // Budget Status Section
-          Text(
-            'Status Anggaran',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).textTheme.bodyLarge?.color,
-            ),
-          ),
-          SizedBox(height: 12),
-          Obx(() {
-            double limit = controller.budgetLimit.value;
-            double used = controller.totalExpense.value;
-            double percentage = limit == 0 ? 0 : (used / limit).clamp(0.0, 1.0);
-            double remaining = limit - used;
-
-            final currencyFormat = NumberFormat.currency(
-              locale: 'id_ID',
-              symbol: 'Rp ',
-              decimalDigits: 0,
-            );
-
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: LinearProgressIndicator(
-                    value: percentage,
-                    minHeight: 12,
-                    backgroundColor:
-                        Theme.of(context).brightness == Brightness.dark
-                        ? Colors.grey[700]
-                        : Color(0xFFE0E0E0),
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      Color(0xFF4CAF50),
-                    ), // Green
-                  ),
-                ),
-                SizedBox(height: 8),
-                RichText(
-                  text: TextSpan(
-                    style: TextStyle(
-                      color: Theme.of(context).textTheme.bodyMedium?.color,
-                      fontSize: 14,
-                    ),
-                    children: [
-                      TextSpan(
-                        text: currencyFormat.format(remaining),
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).textTheme.bodyLarge?.color,
-                        ),
-                      ),
-                      TextSpan(
-                        text: ' tersisa dari ${currencyFormat.format(limit)}',
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            );
-          }),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatItem(
+  // --- PERBAIKAN DI SINI (Kartu Kecil Full Format) ---
+  Widget _buildSmallCard(
     BuildContext context,
-    String label,
-    double amount, {
-    bool isBig = false,
-  }) {
-    final currencyFormat = NumberFormat.currency(
+    String title,
+    RxDouble value,
+    Color color,
+  ) {
+    // Gunakan format currency penuh
+    final fullFormat = NumberFormat.currency(
       locale: 'id_ID',
       symbol: 'Rp ',
       decimalDigits: 0,
     );
 
     return Container(
-      padding: EdgeInsets.all(16),
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark
-            ? Colors.white.withValues(alpha: 0.05)
-            : Color(0xFFF8F9FA),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
-        ),
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            label,
+            title,
             style: TextStyle(
-              fontSize: 14,
-              color: Theme.of(context).textTheme.bodyMedium?.color,
+              color: Theme.of(context).colorScheme.secondary,
+              fontSize: 10,
             ),
           ),
-          SizedBox(height: 8),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Text(
-              currencyFormat.format(amount),
+          SizedBox(height: 4),
+          Obx(
+            () => Text(
+              fullFormat.format(value.value),
               style: TextStyle(
-                fontSize: isBig ? 24 : 20,
                 fontWeight: FontWeight.bold,
-                color: isBig
-                    ? Theme.of(context).primaryColor
-                    : Theme.of(context).textTheme.bodyLarge?.color,
-              ),
+                fontSize: 13,
+              ), // Font sedikit dikecilkan agar muat
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],

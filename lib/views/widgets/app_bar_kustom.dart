@@ -4,11 +4,10 @@ import '../../controllers/aplikasi_controllers.dart';
 import '../../controllers/autentikasi_controllers.dart';
 
 class AppBarKustom extends StatelessWidget implements PreferredSizeWidget {
-  final String title;
   final KontrolerAplikasi appCtrl = Get.find<KontrolerAplikasi>();
   final KontrolerAutentikasi authCtrl = Get.find<KontrolerAutentikasi>();
 
-  AppBarKustom({super.key, required this.title});
+  AppBarKustom({super.key});
 
   @override
   Size get preferredSize => Size.fromHeight(kToolbarHeight);
@@ -26,8 +25,8 @@ class AppBarKustom extends StatelessWidget implements PreferredSizeWidget {
           tooltip: 'Menu',
         ),
       ),
-      title: Text(title),
-      centerTitle: false, // Align title to the left
+      // Title removed as per request
+      centerTitle: false, 
       actions: [
         // 1. Theme Toggle
         Obx(
@@ -62,8 +61,8 @@ class AppBarKustom extends StatelessWidget implements PreferredSizeWidget {
               SizedBox(width: 8),
               CircleAvatar(
                 radius: 16,
-                backgroundColor: Colors.grey[300],
-                child: Icon(Icons.person, size: 20, color: Colors.grey[700]),
+                backgroundColor: Theme.of(context).dividerColor,
+                child: Icon(Icons.person, size: 20, color: Theme.of(context).iconTheme.color),
               ),
             ],
           ),
