@@ -10,19 +10,16 @@ class KontrolerBeranda extends GetxController {
   final LayananBeranda _service;
 
   KontrolerBeranda({LayananBeranda? service})
-    : _service = service ?? LayananBeranda();
-
-  // --- VARIABLES DATA ---
+      : _service = service ?? LayananBeranda();
   final RxList<ModelTransaksi> allTransactions = <ModelTransaksi>[].obs;
   final RxList<ModelTransaksi> recentTransactions = <ModelTransaksi>[].obs;
-  final RxList<ModelJadwalPembayaran> upcomingSchedules =
-      <ModelJadwalPembayaran>[].obs;
+  final RxList<ModelJadwalPembayaran> upcomingSchedules = <ModelJadwalPembayaran>[].obs;
   final RxList<ModelTabungan> savingsGoals = <ModelTabungan>[].obs;
-
   final RxDouble totalIncome = 0.0.obs;
   final RxDouble totalExpense = 0.0.obs;
   final RxDouble totalBalance = 0.0.obs;
-
+  final RxDouble totalSavingsCurrent = 0.0.obs;
+  final RxDouble totalSavingsTarget = 0.0.obs;
   final RxDouble trendPercentage = 0.0.obs;
   final RxBool isTrendUp = true.obs;
   final RxDouble budgetLimit = 10000000.0.obs;
@@ -31,9 +28,6 @@ class KontrolerBeranda extends GetxController {
   final RxList<FlSpot> incomeSpots = <FlSpot>[].obs;
   final RxList<FlSpot> expenseSpots = <FlSpot>[].obs;
   final RxDouble maxChartY = 1000.0.obs;
-
-  // --- INTERAKSI CHART (STATE) ---
-  // -1 = Tidak ada yang disentuh (Hidden)
   var touchedIndexLine = (-1).obs;
   var touchedIndexDonut = (-1).obs;
 
@@ -55,10 +49,19 @@ class KontrolerBeranda extends GetxController {
     upcomingSchedules.bindStream(_service.getUpcomingSchedules());
     savingsGoals.bindStream(_service.getSavingsGoals());
 
+    ever(savingsGoals, (List<ModelTabungan> goals) {
+      double current = 0;
+      double target = 0;
+      for (var item in goals) {
+        current += item.currentAmount;
+        target += item.targetAmount;
+      }
+      totalSavingsCurrent.value = current;
+      totalSavingsTarget.value = target;
+    });
+
     _transactionSubscription?.cancel();
-    _transactionSubscription = _service.getAllTransactions().listen((
-      transactions,
-    ) {
+    _transactionSubscription = _service.getAllTransactions().listen((transactions) {
       transactions.sort((a, b) => b.date.compareTo(a.date));
       allTransactions.value = transactions;
       recentTransactions.value = transactions.take(5).toList();
@@ -70,13 +73,11 @@ class KontrolerBeranda extends GetxController {
   void _calculateFinancials(List<ModelTransaksi> transactions) {
     final now = DateTime.now();
     final startOfThisMonth = DateTime(now.year, now.month, 1);
+
     final thisMonthTransactions = transactions
-        .where(
-          (tx) => tx.date.isAfter(
-            startOfThisMonth.subtract(const Duration(seconds: 1)),
-          ),
-        )
+        .where((tx) => tx.date.isAfter(startOfThisMonth.subtract(const Duration(seconds: 1))))
         .toList();
+
     final previousTransactions = transactions
         .where((tx) => tx.date.isBefore(startOfThisMonth))
         .toList();
@@ -84,39 +85,39 @@ class KontrolerBeranda extends GetxController {
     double currentMonthIncome = 0;
     double currentMonthExpense = 0;
     for (var tx in thisMonthTransactions) {
-      if (tx.isExpense)
+      if (tx.isExpense) {
         currentMonthExpense += tx.amount;
-      else
+      } else {
         currentMonthIncome += tx.amount;
+      }
     }
+
     totalIncome.value = currentMonthIncome;
     totalExpense.value = currentMonthExpense;
-
-    // Total Saldo menampilkan bulan ini (bukan seluruh waktu)
     totalBalance.value = currentMonthIncome - currentMonthExpense;
 
     double prevIncome = 0;
     double prevExpense = 0;
     for (var tx in previousTransactions) {
-      if (tx.isExpense)
+      if (tx.isExpense) {
         prevExpense += tx.amount;
-      else
+      } else {
         prevIncome += tx.amount;
+      }
     }
     double prevBalance = prevIncome - prevExpense;
 
     if (prevBalance == 0) {
       trendPercentage.value = totalBalance.value > 0 ? 100.0 : 0.0;
     } else {
-      trendPercentage.value =
-          ((totalBalance.value - prevBalance) / prevBalance.abs()) * 100;
+      trendPercentage.value = ((totalBalance.value - prevBalance) / prevBalance.abs()) * 100;
     }
     isTrendUp.value = trendPercentage.value >= 0;
-
-    if (currentMonthIncome > 0)
+    if (currentMonthIncome > 0) {
       budgetLimit.value = currentMonthIncome;
-    else
+    } else {
       budgetLimit.value = 1000000.0;
+    }
   }
 
   void _calculateCharts(List<ModelTransaksi> transactions) {
@@ -127,8 +128,9 @@ class KontrolerBeranda extends GetxController {
 
     Map<String, double> catStats = {};
     for (var tx in thisMonthTransactions) {
-      if (tx.isExpense)
+      if (tx.isExpense) {
         catStats[tx.category] = (catStats[tx.category] ?? 0) + tx.amount;
+      }
     }
     categoryStats.value = catStats;
 
@@ -144,10 +146,11 @@ class KontrolerBeranda extends GetxController {
     for (var tx in thisMonthTransactions) {
       int day = tx.date.day;
       if (day <= limitDay) {
-        if (tx.isExpense)
+        if (tx.isExpense) {
           dailyExpense[day] = (dailyExpense[day] ?? 0) + tx.amount;
-        else
+        } else {
           dailyIncome[day] = (dailyIncome[day] ?? 0) + tx.amount;
+        }
       }
     }
 
@@ -158,8 +161,10 @@ class KontrolerBeranda extends GetxController {
     for (int i = 1; i <= limitDay; i++) {
       double inc = dailyIncome[i] ?? 0;
       double exp = dailyExpense[i] ?? 0;
+
       if (inc > maxY) maxY = inc;
       if (exp > maxY) maxY = exp;
+
       incSpots.add(FlSpot(i.toDouble(), inc));
       expSpots.add(FlSpot(i.toDouble(), exp));
     }

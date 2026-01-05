@@ -25,7 +25,6 @@ class LayananAutentikasiFirebase implements LayananAutentikasi {
 
   @override
   Future<void> init() async {
-    // Firebase already initialized in main.dart
   }
 
   @override
@@ -39,13 +38,11 @@ class LayananAutentikasiFirebase implements LayananAutentikasi {
     try {
       String emailToUse = username;
 
-      // Check if input looks like an email
       final bool isEmail = RegExp(
         r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+",
       ).hasMatch(username);
 
       if (!isEmail) {
-        // 1. Find email by username
         final QuerySnapshot result = await _firestore
             .collection('users')
             .where('username', isEqualTo: username)
@@ -62,7 +59,6 @@ class LayananAutentikasiFirebase implements LayananAutentikasi {
         emailToUse = result.docs.first.get('email') as String;
       }
 
-      // 2. Sign in with email & password
       final UserCredential userCredential = await _auth
           .signInWithEmailAndPassword(email: emailToUse, password: password);
       return userCredential.user;
@@ -78,7 +74,6 @@ class LayananAutentikasiFirebase implements LayananAutentikasi {
     String password,
   ) async {
     try {
-      // Check if username already exists
       final usernameCheck = await _firestore
           .collection('users')
           .where('username', isEqualTo: username)
@@ -93,7 +88,6 @@ class LayananAutentikasiFirebase implements LayananAutentikasi {
         password: password,
       );
 
-      // Save user to Firestore with username
       if (result.user != null) {
         await _saveUserToFirestore(result.user!, username: username);
       }
@@ -109,27 +103,20 @@ class LayananAutentikasiFirebase implements LayananAutentikasi {
   @override
   Future<User?> signInWithGoogle() async {
     try {
-      // Trigger the authentication flow
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-
-      if (googleUser == null) return null; // User canceled
-
-      // Obtain the auth details from the request
+      if (googleUser == null) return null;
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
 
-      // Create a new credential
       final OAuthCredential credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
-      // Once signed in, return the UserCredential
       final UserCredential result = await _auth.signInWithCredential(
         credential,
       );
 
-      // Save user to Firestore
       if (result.user != null) {
         await _saveUserToFirestore(result.user!);
       }
@@ -161,7 +148,6 @@ class LayananAutentikasiFirebase implements LayananAutentikasi {
       final userDoc = _firestore.collection('users').doc(user.uid);
       final snapshot = await userDoc.get();
 
-      // Logic Generate Username (Ambil kata pertama dari displayName)
       String generatedUsername =
           username ??
           (user.displayName?.split(" ")[0] ??
@@ -169,7 +155,6 @@ class LayananAutentikasiFirebase implements LayananAutentikasi {
               'User');
 
       if (!snapshot.exists) {
-        // User Baru: Simpan data lengkap + username
         await userDoc.set({
           'email': user.email,
           'displayName': user.displayName ?? user.email?.split('@')[0],
@@ -179,12 +164,9 @@ class LayananAutentikasiFirebase implements LayananAutentikasi {
           'lastLogin': FieldValue.serverTimestamp(),
         });
       } else {
-        // User Lama: Update lastLogin & Pastikan field username ada
         Map<String, dynamic> updates = {
           'lastLogin': FieldValue.serverTimestamp(),
         };
-
-        // Cek apakah field username sudah ada, jika belum, tambahkan
         if (snapshot.data() != null &&
             !snapshot.data()!.containsKey('username')) {
           updates['username'] = generatedUsername;
@@ -194,7 +176,6 @@ class LayananAutentikasiFirebase implements LayananAutentikasi {
       }
     } catch (e) {
       debugPrint('Error saving user to Firestore: $e');
-      // Non-blocking error, just log it
     }
   }
 

@@ -53,7 +53,6 @@ class GrafikDonat extends StatelessWidget {
                       pieTouchData: PieTouchData(
                         enabled: true,
                         touchCallback: (FlTouchEvent event, pieTouchResponse) {
-                          // LOGIKA LEPAS: Jika jari diangkat (TapUp/PanEnd), sembunyikan info
                           if (event is FlTapUpEvent ||
                               event is FlPanEndEvent ||
                               event is FlPanCancelEvent ||
@@ -62,7 +61,6 @@ class GrafikDonat extends StatelessWidget {
                             return;
                           }
 
-                          // LOGIKA SENTUH: Update info jika sedang menyentuh
                           if (event is FlTapDownEvent ||
                               event is FlPanDownEvent ||
                               event is FlPanUpdateEvent) {

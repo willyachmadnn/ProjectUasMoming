@@ -322,7 +322,7 @@ class TampilanUbahPassword extends StatelessWidget {
         filled: true,
         fillColor: Theme.of(
           context,
-        ).scaffoldBackgroundColor, // Contrast with card
+        ).scaffoldBackgroundColor,
         suffixIcon: isPassword
             ? IconButton(
                 iconSize: 20,

@@ -37,7 +37,6 @@ class KontrolPaginasi extends StatelessWidget {
                 ),
               ),
               SizedBox(width: 8),
-              // We could show page numbers here if we knew total pages
               Container(
                 width: 32,
                 height: 32,

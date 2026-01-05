@@ -156,7 +156,6 @@ class TampilanUbahPassword extends StatelessWidget {
         suffixIcon: isPassword
             ? IconButton(
           iconSize: 20,
-          // PERBAIKAN: Safe color check
           icon: Icon(
               isObscure ? Icons.visibility_off : Icons.visibility,
               color: Colors.grey

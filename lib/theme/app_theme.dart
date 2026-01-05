@@ -1,19 +1,12 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  // Warna Utama
   static const Color primaryLight = Color(0xFF2563EB);
   static const Color primaryDark = Color(0xFF3B82F6);
-  
-  // Backgrounds
   static const Color backgroundLight = Color(0xFFF9FAFB);
   static const Color backgroundDark = Color(0xFF0F172A);
-  
-  // Cards
   static const Color cardLight = Color(0xFFFFFFFF);
   static const Color cardDark = Color(0xFF1E293B);
-  
-  // Text
   static const Color textLight = Color(0xFF0F172A);
   static const Color textDark = Color(0xFFF8FAFC);
   static const Color textSecondaryLight = Color(0xFF64748B);

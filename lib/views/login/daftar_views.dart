@@ -13,7 +13,6 @@ class TampilanDaftar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Warna asli (Neumorphic Base)
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -34,7 +33,6 @@ class TampilanDaftar extends StatelessWidget {
               maxWidth: Get.width > 600 ? 450 : Get.width * 0.9,
             ),
             padding: const EdgeInsets.all(40),
-            // Dekorasi asli (Efek Timbul)
             decoration: BoxDecoration(
               color: const Color(0xFFE0E5EC),
               borderRadius: BorderRadius.circular(20),
@@ -67,19 +65,14 @@ class TampilanDaftar extends StatelessWidget {
                   'Bergabunglah bersama kami',
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
-
                 const SizedBox(height: 30),
-
-                // Form Inputs dengan Floating Label
                 _buildFloatingLabelTextField(
                   context,
                   label: 'Username',
                   controller: usernameCtrl,
                   icon: Icons.person_outline,
                 ),
-
                 const SizedBox(height: 20),
-
                 _buildFloatingLabelTextField(
                   context,
                   label: 'Email',
@@ -87,10 +80,7 @@ class TampilanDaftar extends StatelessWidget {
                   icon: Icons.email_outlined,
                   inputType: TextInputType.emailAddress,
                 ),
-
                 const SizedBox(height: 20),
-
-                // Password
                 Obx(
                   () => _buildFloatingLabelTextField(
                     context,
@@ -103,10 +93,7 @@ class TampilanDaftar extends StatelessWidget {
                         authCtrl.toggleRegisterPasswordVisibility,
                   ),
                 ),
-
                 const SizedBox(height: 32),
-
-                // Tombol Daftar
                 Obx(
                   () => authCtrl.isLoading.value
                       ? const CircularProgressIndicator()
@@ -145,8 +132,6 @@ class TampilanDaftar extends StatelessWidget {
       ),
     );
   }
-
-  // --- WIDGET HELPER INPUT FLOATING LABEL ---
   Widget _buildFloatingLabelTextField(
     BuildContext context, {
     required String label,
@@ -178,8 +163,6 @@ class TampilanDaftar extends StatelessWidget {
           color: Theme.of(context).primaryColor,
           fontWeight: FontWeight.bold,
         ),
-
-        // PERBAIKAN: Menambahkan background putih
         filled: true,
         fillColor: Theme.of(context).inputDecorationTheme.fillColor,
 
@@ -199,7 +182,6 @@ class TampilanDaftar extends StatelessWidget {
         // Styling Border
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          // Menggunakan warna abu-abu muda agar menyatu dengan putih
           borderSide: BorderSide(color: Theme.of(context).dividerColor),
         ),
         focusedBorder: OutlineInputBorder(

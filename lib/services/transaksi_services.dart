@@ -8,12 +8,10 @@ class LayananTransaksi {
 
   String? get _userId => FirebaseAuth.instance.currentUser?.uid;
 
-  // Transactions Collection Reference (Root Collection)
   CollectionReference get _transactionsRef {
     return _firestore.collection('transactions');
   }
 
-  // Categories Collection Reference (Subcollection)
   CollectionReference get _categoriesRef {
     if (_userId == null) {
       return _firestore
@@ -24,7 +22,6 @@ class LayananTransaksi {
     return _firestore.collection('users').doc(_userId).collection('categories');
   }
 
-  // Get Transactions with Filters and Pagination
   Future<List<ModelTransaksi>> getTransactions({
     int limit = 10,
     DocumentSnapshot? startAfter,
@@ -36,7 +33,6 @@ class LayananTransaksi {
 
     Query query = _transactionsRef.orderBy('date', descending: true);
 
-    // Filter by Month
     if (month != null) {
       final startOfMonth = DateTime(month.year, month.month, 1);
       final endOfMonth = DateTime(month.year, month.month + 1, 0, 23, 59, 59);
@@ -65,7 +61,6 @@ class LayananTransaksi {
       return ModelTransaksi.fromFirestore(doc);
     }).toList();
 
-    // Client-side search filtering
     if (searchQuery != null && searchQuery.isNotEmpty) {
       transactions = transactions
           .where(
@@ -78,7 +73,6 @@ class LayananTransaksi {
     return transactions;
   }
 
-  // Get Transactions Stream (Realtime)
   Stream<QuerySnapshot> getTransactionsStream({
     int limit = 10,
     DocumentSnapshot? startAfter,
@@ -88,11 +82,7 @@ class LayananTransaksi {
     if (_userId == null) {
       return const Stream.empty();
     }
-
-    // Filter by User ID first
     Query query = _transactionsRef.where('uid', isEqualTo: _userId);
-
-    // Then order by date
     query = query.orderBy('date', descending: true);
 
     if (month != null) {
@@ -118,48 +108,31 @@ class LayananTransaksi {
 
     return query.snapshots();
   }
-
-  // Add Transaction
   Future<void> addTransaction(ModelTransaksi transaction) async {
     if (_userId == null) {
       print("Warning: Adding transaction as Guest");
     }
     final data = transaction.toJson();
-    data['uid'] = _userId; // Keep uid for redundancy/safety
+    data['uid'] = _userId;
     await _transactionsRef.add(data);
   }
-
-  // Update Transaction
   Future<void> updateTransaction(ModelTransaksi transaction) async {
     await _transactionsRef.doc(transaction.id).update(transaction.toJson());
   }
-
-  // Delete Transaction
   Future<void> deleteTransaction(String id) async {
     await _transactionsRef.doc(id).delete();
   }
-
-  // --- CATEGORY METHODS ---
-
-  // Add Category
   Future<void> addCategory(ModelKategori category) async {
     await _categoriesRef.add(category.toJson());
   }
-
-  // Update Category (YANG PERLU DITAMBAHKAN)
   Future<void> updateCategory(ModelKategori category) async {
     await _categoriesRef.doc(category.id).update(category.toJson());
   }
-
-  // Delete Category (YANG PERLU DITAMBAHKAN)
   Future<void> deleteCategory(String id) async {
     await _categoriesRef.doc(id).delete();
   }
-
-  // Get Categories Stream
   Stream<List<ModelKategori>> getCategories() {
     if (_userId == null) return Stream.value([]);
-    // Subcollection doesn't need 'where uid'
     return _categoriesRef.snapshots().map((snapshot) {
       return snapshot.docs
           .map((doc) => ModelKategori.fromFirestore(doc))

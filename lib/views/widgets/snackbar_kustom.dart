@@ -3,8 +3,6 @@ import 'package:get/get.dart';
 import 'dart:async';
 
 class SnackbarKustom {
-  // Variabel untuk menyimpan notifikasi yang sedang aktif
-  // agar bisa ditutup otomatis jika ada notifikasi baru masuk (mencegah tumpuk)
   static OverlayEntry? _activeEntry;
   static Timer? _activeTimer;
 
@@ -15,21 +13,18 @@ class SnackbarKustom {
     required IconData icon,
     int durationSeconds = 3,
   }) {
-    // 1. Tutup notifikasi sebelumnya jika masih ada
     if (_activeEntry != null) {
       _activeEntry?.remove();
       _activeTimer?.cancel();
       _activeEntry = null;
     }
 
-    // 2. Ambil Overlay State dari GetX context
     final overlayState = Get.overlayContext != null
         ? Overlay.of(Get.overlayContext!)
         : null;
 
     if (overlayState == null) return;
 
-    // 3. Buat Overlay Entry baru
     _activeEntry = OverlayEntry(
       builder: (context) => _FadeSnackbarWidget(
         title: title,
@@ -44,17 +39,14 @@ class SnackbarKustom {
       ),
     );
 
-    // 4. Tampilkan ke layar
     overlayState.insert(_activeEntry!);
   }
-
-  // --- PUBLIC METHODS (Cara Panggil Tetap Sama) ---
 
   static void sukses(String title, String message) {
     _show(
       title: title,
       message: message,
-      color: const Color(0xFF22C55E), // Hijau
+      color: const Color(0xFF22C55E),
       icon: Icons.check_circle,
       durationSeconds: 3,
     );
@@ -64,7 +56,7 @@ class SnackbarKustom {
     _show(
       title: title,
       message: message,
-      color: const Color(0xFFEF4444), // Merah
+      color: const Color(0xFFEF4444),
       icon: Icons.error_outline,
       durationSeconds: 4,
     );
@@ -74,7 +66,7 @@ class SnackbarKustom {
     _show(
       title: title,
       message: message,
-      color: const Color(0xFF3B8266), // Teal/Hijau Tua
+      color: const Color(0xFF3B8266),
       icon: Icons.info_outline,
       durationSeconds: 3,
     );
@@ -84,14 +76,13 @@ class SnackbarKustom {
     _show(
       title: title,
       message: message,
-      color: const Color(0xFFE59E0B), // Kuning/Oranye
+      color: const Color(0xFFE59E0B),
       icon: Icons.warning_amber_rounded,
       durationSeconds: 3,
     );
   }
 }
 
-// --- WIDGET INTERNAL (Menangani Animasi Fade) ---
 class _FadeSnackbarWidget extends StatefulWidget {
   final String title;
   final String message;
@@ -121,19 +112,16 @@ class _FadeSnackbarWidgetState extends State<_FadeSnackbarWidget> with SingleTic
   @override
   void initState() {
     super.initState();
-    // Konfigurasi Animasi Fade In
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 400), // Kecepatan muncul
-      reverseDuration: const Duration(milliseconds: 400), // Kecepatan hilang
+      duration: const Duration(milliseconds: 400),
+      reverseDuration: const Duration(milliseconds: 400),
     );
 
     _opacityAnim = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
 
-    // Jalankan animasi muncul (Fade In)
     _controller.forward();
 
-    // Timer untuk otomatis menutup (Fade Out) setelah sekian detik
     _dismissTimer = Timer(widget.duration, () {
       if (mounted) {
         _controller.reverse().then((_) {
@@ -152,13 +140,12 @@ class _FadeSnackbarWidgetState extends State<_FadeSnackbarWidget> with SingleTic
 
   @override
   Widget build(BuildContext context) {
-    // Hitung margin kiri 50%
     final double leftMargin = Get.width * 0.5;
 
     return Positioned(
       bottom: 20,
       right: 16,
-      left: leftMargin, // Ini memaksa ukuran 50% di kanan
+      left: leftMargin,
       child: Material(
         color: Colors.transparent,
         child: FadeTransition(
@@ -169,7 +156,6 @@ class _FadeSnackbarWidgetState extends State<_FadeSnackbarWidget> with SingleTic
               color: widget.backgroundColor.withValues(alpha: 0.95),
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
-                // Shadow agar terlihat melayang & elegan
                 BoxShadow(
                   color: widget.backgroundColor.withValues(alpha: 0.4),
                   offset: const Offset(0, 4),
@@ -193,7 +179,6 @@ class _FadeSnackbarWidgetState extends State<_FadeSnackbarWidget> with SingleTic
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Judul
                       if (widget.title.isNotEmpty)
                         Text(
                           widget.title,
@@ -205,7 +190,6 @@ class _FadeSnackbarWidgetState extends State<_FadeSnackbarWidget> with SingleTic
                         ),
                       if (widget.title.isNotEmpty)
                         const SizedBox(height: 2),
-                      // Pesan
                       Text(
                         widget.message,
                         style: const TextStyle(

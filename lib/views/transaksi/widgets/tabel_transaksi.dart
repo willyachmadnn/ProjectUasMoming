@@ -156,7 +156,6 @@ class TabelTransaksi extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Header Row
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
@@ -225,7 +224,6 @@ class TabelTransaksi extends StatelessWidget {
                   child: Center(child: Text('Tidak ada transaksi ditemukan')),
                 ),
 
-              // Data Rows
               ...transactions.reversed.map((tx) {
                 return Container(
                   padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),

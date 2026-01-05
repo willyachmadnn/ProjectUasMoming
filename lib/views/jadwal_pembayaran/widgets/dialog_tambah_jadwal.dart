@@ -10,11 +10,7 @@ class DialogTambahJadwal extends StatefulWidget {
   final KontrolerJadwalPembayaran controller;
   final ModelJadwalPembayaran? schedule;
 
-  const DialogTambahJadwal({
-    super.key,
-    required this.controller,
-    this.schedule,
-  });
+  const DialogTambahJadwal({super.key, required this.controller, this.schedule});
 
   @override
   State<DialogTambahJadwal> createState() => _DialogTambahJadwalState();
@@ -24,23 +20,17 @@ class _DialogTambahJadwalState extends State<DialogTambahJadwal> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _amountController = TextEditingController();
-  final _notesController = TextEditingController();
   DateTime _selectedDate = DateTime.now();
-  String _selectedCategory = 'Tagihan'; // Default
-  String _recurrence = 'none'; // Default recurrence
+  String _selectedCategory = 'Tagihan';
+  String _recurrence = 'none';
 
   @override
   void initState() {
     super.initState();
     if (widget.schedule != null) {
       _nameController.text = widget.schedule!.name;
-      final formatter = NumberFormat.currency(
-        locale: 'id',
-        symbol: '',
-        decimalDigits: 0,
-      );
+      final formatter = NumberFormat.currency(locale: 'id', symbol: '', decimalDigits: 0);
       _amountController.text = formatter.format(widget.schedule!.amount);
-      _notesController.text = widget.schedule!.notes ?? '';
       _selectedDate = widget.schedule!.dueDate;
       _selectedCategory = widget.schedule!.category ?? 'Tagihan';
       _recurrence = widget.schedule!.recurrence;
@@ -50,12 +40,10 @@ class _DialogTambahJadwalState extends State<DialogTambahJadwal> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      backgroundColor: Theme.of(context).cardColor,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Container(
         width: context.width > 400 ? 400 : context.width * 0.9,
-        constraints: BoxConstraints(maxHeight: context.height * 0.8),
-        padding: EdgeInsets.all(24),
+        padding: const EdgeInsets.all(24),
         child: SingleChildScrollView(
           child: Form(
             key: _formKey,
@@ -64,111 +52,37 @@ class _DialogTambahJadwalState extends State<DialogTambahJadwal> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  widget.schedule == null
-                      ? 'Tambah Jadwal Baru'
-                      : 'Edit Jadwal',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).textTheme.bodyLarge?.color,
-                  ),
+                  widget.schedule == null ? 'Tambah Jadwal Baru' : 'Edit Jadwal',
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
-                SizedBox(height: 24),
-
-                // Nama Tagihan
-                TextFormField(
-                  controller: _nameController,
-                  style: TextStyle(
-                    color: Theme.of(context).textTheme.bodyLarge?.color,
-                  ),
-                  decoration: InputDecoration(
-                    labelText: 'Nama Tagihan',
-                    prefixIcon: Icon(Icons.description),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  validator: (val) =>
-                      val == null || val.isEmpty ? 'Wajib diisi' : null,
-                ),
-                SizedBox(height: 16),
-
-                // Nominal
-                TextFormField(
-                  controller: _amountController,
-                  style: TextStyle(
-                    color: Theme.of(context).textTheme.bodyLarge?.color,
-                  ),
-                  decoration: InputDecoration(
-                    labelText: 'Estimasi Nominal',
-                    prefixIcon: Icon(Icons.attach_money),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    prefixText: 'Rp ',
-                  ),
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [CurrencyInputFormatter()],
-                  validator: (val) {
-                    if (val == null || val.isEmpty) return 'Wajib diisi';
-                    final numStr = val.replaceAll(RegExp(r'[^0-9]'), '');
-                    return numStr.isEmpty ? 'Invalid amount' : null;
-                  },
-                ),
-                SizedBox(height: 16),
-
-                // Kategori
+                const SizedBox(height: 20),
                 DropdownButtonFormField<String>(
                   value: _selectedCategory,
                   decoration: InputDecoration(
                     labelText: 'Kategori',
-                    prefixIcon: Icon(Icons.category),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   items: ['Tagihan', 'Cicilan', 'Langganan', 'Lainnya']
-                      .map(
-                        (cat) => DropdownMenuItem(value: cat, child: Text(cat)),
-                      )
+                      .map((cat) => DropdownMenuItem(value: cat, child: Text(cat)))
                       .toList(),
-                  onChanged: (val) {
-                    if (val != null) setState(() => _selectedCategory = val);
-                  },
+                  onChanged: (val) => setState(() => _selectedCategory = val!),
                 ),
-                SizedBox(height: 16),
-
-                // Ulangi (Recurrence)
+                const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
                   value: _recurrence,
                   decoration: InputDecoration(
                     labelText: 'Ulangi',
-                    prefixIcon: Icon(Icons.repeat),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  items:
-                      [
-                            {'val': 'none', 'label': 'Tidak Berulang'},
-                            {'val': 'daily', 'label': 'Harian'},
-                            {'val': 'weekly', 'label': 'Mingguan'},
-                            {'val': 'monthly', 'label': 'Bulanan'},
-                          ]
-                          .map(
-                            (item) => DropdownMenuItem(
-                              value: item['val'],
-                              child: Text(item['label']!),
-                            ),
-                          )
-                          .toList(),
-                  onChanged: (val) {
-                    if (val != null) setState(() => _recurrence = val);
-                  },
+                  items: [
+                    {'val': 'none', 'label': 'Tidak Berulang'},
+                    {'val': 'daily', 'label': 'Harian'},
+                    {'val': 'weekly', 'label': 'Mingguan'},
+                    {'val': 'monthly', 'label': 'Bulanan'},
+                  ].map((item) => DropdownMenuItem(value: item['val'] as String, child: Text(item['label'] as String))).toList(),
+                  onChanged: (val) => setState(() => _recurrence = val!),
                 ),
-                SizedBox(height: 16),
-
-                // Jatuh Tempo
+                const SizedBox(height: 16),
                 InkWell(
                   onTap: () async {
                     final picked = await showDatePicker(
@@ -182,76 +96,60 @@ class _DialogTambahJadwalState extends State<DialogTambahJadwal> {
                   child: InputDecorator(
                     decoration: InputDecoration(
                       labelText: 'Jatuh Tempo',
-                      prefixIcon: Icon(Icons.calendar_today),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: Text(
-                      DateFormat('dd MMMM yyyy', 'id_ID').format(_selectedDate),
-                      style: TextStyle(
-                        color: Theme.of(context).textTheme.bodyLarge?.color,
-                      ),
-                    ),
+                    child: Text(DateFormat('dd MMMM yyyy', 'id_ID').format(_selectedDate)),
                   ),
                 ),
-                SizedBox(height: 16),
-
-                // Catatan
+                const SizedBox(height: 16),
                 TextFormField(
-                  controller: _notesController,
-                  style: TextStyle(
-                    color: Theme.of(context).textTheme.bodyLarge?.color,
-                  ),
+                  controller: _nameController,
                   decoration: InputDecoration(
-                    labelText: 'Catatan',
-                    prefixIcon: Icon(Icons.note),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+                    labelText: 'Nama Tagihan',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  maxLines: 3,
+                  validator: (val) => val == null || val.isEmpty ? 'Wajib diisi' : null,
                 ),
-                SizedBox(height: 24),
-
-                // Buttons
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _amountController,
+                  decoration: InputDecoration(
+                    labelText: 'Estimasi Nominal',
+                    prefixText: 'Rp ',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    CurrencyInputFormatter(),
+                  ],
+                  validator: (val) => val == null || val.isEmpty ? 'Wajib diisi' : null,
+                ),
+                const SizedBox(height: 24),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     TextButton(
                       onPressed: () => Get.back(),
-                      child: Text('Batal'),
+                      child: Text("Batal", style: TextStyle(color: Theme.of(context).primaryColor)),
                     ),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).primaryColor,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
-                          final amountStr = _amountController.text.replaceAll(
-                            RegExp(r'[^0-9]'),
-                            '',
-                          );
-                          final schedule = ModelJadwalPembayaran(
-                            id: widget.schedule?.id ?? '',
-                            name: _nameController.text,
-                            amount: double.parse(amountStr),
-                            dueDate: _selectedDate,
-                            isPaid: widget.schedule?.isPaid ?? false,
-                            category: _selectedCategory,
-                            notes: _notesController.text,
-                            recurrence: _recurrence,
-                          );
-
-                          if (widget.schedule == null) {
-                            widget.controller.addSchedule(schedule);
+                          if (widget.schedule != null) {
+                            _konfirmasiSimpan();
                           } else {
-                            widget.controller.updateSchedule(schedule);
+                            _eksekusiSimpan();
                           }
-                          Get.back();
                         }
                       },
-                      child: Text(
-                        widget.schedule == null ? 'Simpan' : 'Update',
-                      ),
+                      child: Text(widget.schedule == null ? 'Simpan' : 'Update'),
                     ),
                   ],
                 ),
@@ -261,5 +159,41 @@ class _DialogTambahJadwalState extends State<DialogTambahJadwal> {
         ),
       ),
     );
+  }
+
+  void _konfirmasiSimpan() {
+    Get.defaultDialog(
+      title: "Konfirmasi",
+      middleText: "Simpan perubahan jadwal?",
+      textConfirm: "Ya",
+      textCancel: "Batal",
+      confirmTextColor: Colors.white,
+      buttonColor: Theme.of(context).primaryColor,
+      radius: 12,
+      onConfirm: () {
+        Get.back();
+        _eksekusiSimpan();
+      },
+    );
+  }
+
+  void _eksekusiSimpan() {
+    final amount = double.parse(_amountController.text.replaceAll(RegExp(r'[^0-9]'), ''));
+    final schedule = ModelJadwalPembayaran(
+      id: widget.schedule?.id ?? '',
+      name: _nameController.text,
+      amount: amount,
+      dueDate: _selectedDate,
+      isPaid: widget.schedule?.isPaid ?? false,
+      category: _selectedCategory,
+      recurrence: _recurrence,
+    );
+
+    if (widget.schedule == null) {
+      widget.controller.addSchedule(schedule);
+    } else {
+      widget.controller.updateSchedule(schedule);
+    }
+    Get.back();
   }
 }

@@ -10,7 +10,6 @@ class LayananJadwalPembayaran {
   CollectionReference get _schedulesRef =>
       _firestore.collection('payment_schedules');
 
-  // Get Schedules Stream (ordered by due date)
   Stream<List<ModelJadwalPembayaran>> getSchedules() {
     if (_userId == null) return const Stream.empty();
     
@@ -27,7 +26,6 @@ class LayananJadwalPembayaran {
     });
   }
 
-  // Add Schedule
   Future<void> addSchedule(ModelJadwalPembayaran schedule) async {
     if (_userId == null) throw Exception('User not logged in');
     final data = schedule.toJson();
@@ -35,7 +33,6 @@ class LayananJadwalPembayaran {
     await _schedulesRef.add(data);
   }
 
-  // Update Schedule
   Future<void> updateSchedule(ModelJadwalPembayaran schedule) async {
     if (_userId == null) throw Exception('User not logged in');
     final data = schedule.toJson();
@@ -43,12 +40,10 @@ class LayananJadwalPembayaran {
     await _schedulesRef.doc(schedule.id).update(data);
   }
 
-  // Mark as Paid and Handle Recurrence
   Future<void> markAsPaid(String id, bool isPaid) async {
     final docRef = _schedulesRef.doc(id);
     await docRef.update({'isPaid': isPaid});
 
-    // Logic for Recurring Payments (Cloud Function Simulation)
     if (isPaid) {
       final doc = await docRef.get();
       final data = doc.data() as Map<String, dynamic>;
@@ -63,7 +58,6 @@ class LayananJadwalPembayaran {
         } else if (recurrence == 'weekly') {
           nextDate = currentDueDate.add(Duration(days: 7));
         } else if (recurrence == 'monthly') {
-          // Add 1 month safely
           nextDate = DateTime(
             currentDueDate.year,
             currentDueDate.month + 1,
@@ -74,28 +68,23 @@ class LayananJadwalPembayaran {
         }
 
         if (nextDate != null) {
-          // Create next schedule
           final newSchedule = ModelJadwalPembayaran(
-            id: '', // Auto-ID
+            id: '',
             name: data['name'],
             amount: (data['amount'] as num).toDouble(),
             dueDate: nextDate,
             isPaid: false,
             category: data['category'],
             notes: data['notes'],
-            recurrence: recurrence, // Pass the torch
+            recurrence: recurrence,
           );
 
           await addSchedule(newSchedule);
-
-          // Optional: Disable recurrence on the old one to prevent double-spawning if toggled
-          // await docRef.update({'recurrence': 'none'});
         }
       }
     }
   }
 
-  // Delete Schedule
   Future<void> deleteSchedule(String id) async {
     await _schedulesRef.doc(id).delete();
   }

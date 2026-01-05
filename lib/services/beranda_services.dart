@@ -8,17 +8,14 @@ import '../models/jadwal_pembayaran_models.dart';
 class LayananBeranda {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-
-  // Helper: Pastikan selalu ambil UID user yang login
   String get _uid => _auth.currentUser?.uid ?? '';
 
-  // 1. Ambil 5 Transaksi Terakhir (Hanya milik User ini)
   Stream<List<ModelTransaksi>> getRecentTransactions() {
     if (_uid.isEmpty) return Stream.value([]);
 
     return _db
-        .collection('transactions') // Updated to Root Collection
-        .where('uid', isEqualTo: _uid) // Filter by UID
+        .collection('transactions')
+        .where('uid', isEqualTo: _uid)
         .orderBy('date', descending: true)
         .limit(5)
         .snapshots()
@@ -29,14 +26,13 @@ class LayananBeranda {
         );
   }
 
-  // 2. Ambil SEMUA Transaksi (untuk kalkulasi total & chart)
   Stream<List<ModelTransaksi>> getAllTransactions() {
     if (_uid.isEmpty) return Stream.value([]);
 
     return _db
         .collection('transactions')
         .where('uid', isEqualTo: _uid)
-        .orderBy('date', descending: true) // Tetap urutkan tanggal
+        .orderBy('date', descending: true)
         .snapshots()
         .map(
           (snapshot) => snapshot.docs
@@ -45,7 +41,6 @@ class LayananBeranda {
         );
   }
 
-  // Deprecated: Logic dipindah ke Controller agar bisa reuse data transaksi
   Stream<Map<String, dynamic>> getFinancialSummary() {
     return getAllTransactions().map((transactions) {
        double income = 0;
@@ -67,14 +62,13 @@ class LayananBeranda {
     });
   }
 
-  // 3. Ambil Jadwal Pembayaran (User ini saja)
   Stream<List<ModelJadwalPembayaran>> getUpcomingSchedules() {
     return _db
         .collection(
           'payment_schedules',
-        ) // Sesuai dengan jadwal_pembayaran_services.dart
-        .where('uid', isEqualTo: _uid) // Filter by UID
-        .where('isPaid', isEqualTo: false) // Hanya yang belum dibayar
+        )
+        .where('uid', isEqualTo: _uid)
+        .where('isPaid', isEqualTo: false)
         .orderBy('dueDate')
         .limit(3)
         .snapshots()
@@ -85,11 +79,10 @@ class LayananBeranda {
         );
   }
 
-  // 4. Ambil Target Tabungan (User ini saja)
   Stream<List<ModelTabungan>> getSavingsGoals() {
     return _db
-        .collection('savings_goals') // Sesuai dengan tabungan_services.dart
-        .where('uid', isEqualTo: _uid) // Filter by UID
+        .collection('savings_goals')
+        .where('uid', isEqualTo: _uid)
         .limit(3)
         .snapshots()
         .map(
@@ -99,14 +92,13 @@ class LayananBeranda {
         );
   }
 
-  // ... (Method lain seperti getThreeMonthsStats bisa dikosongkan dulu jika belum dipakai)
   Stream<List<Map<String, dynamic>>> getThreeMonthsStats() {
-    return Stream.value([]); // Dummy return agar tidak error
+    return Stream.value([]);
   }
 
   Stream<double> getBudgetLimit() {
     return Stream.value(
       0.0,
-    ); // Dummy, karena logic budget sudah di-handle controller
+    );
   }
 }

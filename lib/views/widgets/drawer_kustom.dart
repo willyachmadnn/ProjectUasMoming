@@ -16,7 +16,6 @@ class DrawerKustom extends StatelessWidget {
       backgroundColor: theme.canvasColor,
       child: Column(
         children: [
-          // Header Menu (Logo)
           Container(
             height: 180,
             width: double.infinity,
@@ -46,7 +45,6 @@ class DrawerKustom extends StatelessWidget {
             ),
           ),
 
-          // Menu Items
           Expanded(
             child: SingleChildScrollView(
               child: Obx(
@@ -104,9 +102,7 @@ class DrawerKustom extends StatelessWidget {
       ),
       onTap: () {
         appCtrl.changeMenu(index);
-        Get.back(); // Close drawer
-
-        // Navigation logic
+        Get.back();
         switch (index) {
           case 0:
             if (Get.currentRoute != '/dashboard') Get.offNamed('/dashboard');

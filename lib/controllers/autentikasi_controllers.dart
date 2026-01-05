@@ -5,15 +5,10 @@ import 'package:get_storage/get_storage.dart';
 import 'package:app_links/app_links.dart';
 import '../services/autentikasi_services.dart';
 import '../views/widgets/snackbar_kustom.dart';
-
-// Import View Ubah Password
 import '../views/autentikasi/ubah_password_views.dart';
-
 import '../controllers/beranda_controllers.dart';
 import '../controllers/transaksi_controllers.dart';
 import '../controllers/jadwal_pembayaran_controllers.dart';
-// Jika Anda punya controller tabungan, sebaiknya import juga, atau biarkan kode cleanup generik
-// import '../controllers/tabungan_controllers.dart';
 
 class KontrolerAutentikasi extends GetxController {
   final LayananAutentikasi _authService;
@@ -51,14 +46,11 @@ class KontrolerAutentikasi extends GetxController {
     return {'username': '', 'password': ''};
   }
 
-  // --- LOGIKA MENANGKAP LINK (DEEP LINK LISTENER) ---
   void _initDeepLinkListener() {
-    // 1. Tangkap link saat aplikasi dibuka dari mati
     _appLinks.getInitialLink().then((uri) {
       if (uri != null) _handleDeepLink(uri);
     });
 
-    // 2. Tangkap link saat aplikasi berjalan di background
     _appLinks.uriLinkStream.listen((uri) {
       _handleDeepLink(uri);
     });
@@ -72,16 +64,13 @@ class KontrolerAutentikasi extends GetxController {
 
     if (mode == 'resetPassword' && oobCode != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        // Tutup dialog atau bottom sheet jika sedang terbuka agar tidak menumpuk
         if (Get.isDialogOpen ?? false) Get.back();
         if (Get.isBottomSheetOpen ?? false) Get.back();
 
-        // Navigasi ke halaman ubah password
         Get.to(() => TampilanUbahPassword(oobCode: oobCode));
       });
     }
   }
-  // ----------------------------------------------------
 
   void toggleLoginPasswordVisibility() {
     isLoginPasswordVisible.toggle();
@@ -114,7 +103,6 @@ class KontrolerAutentikasi extends GetxController {
       isLoading.value = true;
       await _authService.signInWithUsername(username, password);
 
-      // Simpan kredensial jika Remember Me dicentang
       if (isRememberMe.value) {
         _box.write('remember_me', true);
         _box.write('username', username);
@@ -146,7 +134,6 @@ class KontrolerAutentikasi extends GetxController {
         'Registrasi Berhasil',
         'Akun Anda telah berhasil dibuat. Silakan login.',
       );
-      // Pastikan '/login' sesuai dengan yang ada di main.dart
       Get.offNamed('/login', arguments: {'username': username});
     } catch (e) {
       SnackbarKustom.error('Registrasi Gagal', e.toString());
@@ -170,7 +157,6 @@ class KontrolerAutentikasi extends GetxController {
     }
   }
 
-  // --- FITUR RESET PASSWORD (Kirim Link) ---
   Future<void> resetPassword(String email) async {
     if (email.isEmpty) {
       SnackbarKustom.error('Gagal', 'Email tidak boleh kosong');
@@ -206,7 +192,6 @@ class KontrolerAutentikasi extends GetxController {
     }
   }
 
-  // --- FITUR KONFIRMASI PASSWORD BARU ---
   Future<void> confirmPasswordReset(String code, String newPassword) async {
     try {
       isLoading.value = true;
@@ -217,7 +202,6 @@ class KontrolerAutentikasi extends GetxController {
 
       isLoading.value = false;
 
-      // Navigasi balik ke Login dan hapus semua history
       Get.offAllNamed('/login');
 
       SnackbarKustom.sukses(
@@ -230,19 +214,14 @@ class KontrolerAutentikasi extends GetxController {
     }
   }
 
-  // --- FIX LOGOUT (ANTI MACET) ---
   Future<void> logout() async {
-    // 1. Coba Sign Out Firebase
-    // Kita bungkus try-catch agar jika gagal, kode bawah tetap jalan
+
     try {
       await _authService.signOut();
     } catch (e) {
       debugPrint("Error Firebase SignOut: $e");
     }
 
-    // 2. Bersihkan Controller dari Memori
-    // Bungkus try-catch agar jika ada error "Null check operator" di controller lain,
-    // proses logout TIDAK BERHENTI.
     try {
       if (Get.isRegistered<KontrolerBeranda>())
         Get.delete<KontrolerBeranda>(force: true);
@@ -251,20 +230,14 @@ class KontrolerAutentikasi extends GetxController {
       if (Get.isRegistered<KontrolerJadwalPembayaran>())
         Get.delete<KontrolerJadwalPembayaran>(force: true);
 
-      // Hapus controller tabungan juga jika ada (tanpa perlu import file)
-      // Menggunakan delete generic untuk safety
       Get.delete(tag: 'KontrolerTabungan', force: true);
     } catch (e) {
       debugPrint("Error Cleanup Controller: $e");
     }
 
-    // 3. BAGIAN WAJIB: Reset State & Navigasi
-    // Kode ini ditaruh DI LUAR try-catch manapun untuk menjamin eksekusi.
-
     isLoggedIn.value = false;
     userName.value = 'User';
 
-    // Pastikan nama route ini '/login' sesuai dengan main.dart Anda
     Get.offAllNamed('/login');
 
     SnackbarKustom.info('Logout', 'Anda telah keluar dari aplikasi');

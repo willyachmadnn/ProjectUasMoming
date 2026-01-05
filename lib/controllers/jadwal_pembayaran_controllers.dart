@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/jadwal_pembayaran_models.dart';
@@ -13,31 +14,29 @@ class KontrolerJadwalPembayaran extends GetxController {
   KontrolerJadwalPembayaran({
     LayananJadwalPembayaran? scheduleService,
     LayananTransaksi? transactionService,
-  }) : _scheduleService = scheduleService ?? LayananJadwalPembayaran(),
-       _transactionService = transactionService ?? LayananTransaksi();
+  })  : _scheduleService = scheduleService ?? LayananJadwalPembayaran(),
+        _transactionService = transactionService ?? LayananTransaksi();
 
-  // Reactive State
-  final RxList<ModelJadwalPembayaran> allSchedules =
-      <ModelJadwalPembayaran>[].obs;
-  final RxList<ModelJadwalPembayaran> filteredSchedules =
-      <ModelJadwalPembayaran>[].obs;
+  final RxList<ModelJadwalPembayaran> allSchedules = <ModelJadwalPembayaran>[].obs;
+  final RxList<ModelJadwalPembayaran> filteredSchedules = <ModelJadwalPembayaran>[].obs;
 
-  // Filters
+  final RxBool isSearchOpen = false.obs;
   final RxString searchQuery = ''.obs;
-  final RxString statusFilter = 'Semua'.obs; // 'Semua', 'Lunas', 'Belum Lunas'
-  final Rx<DateTime> monthFilter = DateTime.now().obs;
+
+  final Rx<DateTimeRange> selectedDateRange = DateTimeRange(
+    start: DateTime(DateTime.now().year, DateTime.now().month, 1),
+    end: DateTime(DateTime.now().year, DateTime.now().month + 1, 0),
+  ).obs;
 
   @override
   void onInit() {
     super.onInit();
     _bindSchedules();
 
-    // Listen to filter changes
     everAll([
       allSchedules,
       searchQuery,
-      statusFilter,
-      monthFilter,
+      selectedDateRange,
     ], (_) => _applyFilters());
   }
 
@@ -45,36 +44,42 @@ class KontrolerJadwalPembayaran extends GetxController {
     allSchedules.bindStream(_scheduleService.getSchedules());
   }
 
+  void toggleSearch() {
+    isSearchOpen.value = !isSearchOpen.value;
+    if (!isSearchOpen.value) {
+      searchQuery.value = '';
+    }
+  }
+
   void _applyFilters() {
     List<ModelJadwalPembayaran> temp = allSchedules.toList();
 
-    // 1. Month Filter
     temp = temp.where((s) {
-      return s.dueDate.year == monthFilter.value.year &&
-          s.dueDate.month == monthFilter.value.month;
+      final start = DateTime(
+        selectedDateRange.value.start.year,
+        selectedDateRange.value.start.month,
+        selectedDateRange.value.start.day,
+      );
+      final end = DateTime(
+        selectedDateRange.value.end.year,
+        selectedDateRange.value.end.month,
+        selectedDateRange.value.end.day,
+        23, 59, 59,
+      );
+      return s.dueDate.isAfter(start.subtract(const Duration(seconds: 1))) &&
+          s.dueDate.isBefore(end.add(const Duration(seconds: 1)));
     }).toList();
 
-    // 2. Status Filter
-    if (statusFilter.value == 'Lunas') {
-      temp = temp.where((s) => s.isPaid).toList();
-    } else if (statusFilter.value == 'Belum Lunas') {
-      temp = temp.where((s) => !s.isPaid).toList();
-    }
-
-    // 3. Search Filter
     if (searchQuery.value.isNotEmpty) {
       temp = temp
-          .where(
-            (s) =>
-                s.name.toLowerCase().contains(searchQuery.value.toLowerCase()),
-          )
+          .where((s) => s.name.toLowerCase().contains(searchQuery.value.toLowerCase()))
           .toList();
     }
 
+    temp.sort((a, b) => a.dueDate.compareTo(b.dueDate));
     filteredSchedules.assignAll(temp);
   }
 
-  // CRUD Actions
   Future<void> addSchedule(ModelJadwalPembayaran schedule) async {
     try {
       await _scheduleService.addSchedule(schedule);
@@ -106,12 +111,10 @@ class KontrolerJadwalPembayaran extends GetxController {
     if (schedule.isPaid) return;
 
     try {
-      // 1. Update Schedule Status
       await _scheduleService.markAsPaid(schedule.id, true);
 
-      // 2. Add to Transactions
       final transaction = ModelTransaksi(
-        id: '', // Auto-generated
+        id: '',
         uid: FirebaseAuth.instance.currentUser?.uid ?? '',
         description: 'Pembayaran Tagihan: ${schedule.name}',
         amount: schedule.amount,
@@ -122,10 +125,7 @@ class KontrolerJadwalPembayaran extends GetxController {
       );
       await _transactionService.addTransaction(transaction);
 
-      SnackbarKustom.sukses(
-        'Lunas',
-        'Tagihan ditandai lunas & tercatat di transaksi',
-      );
+      SnackbarKustom.sukses('Lunas', 'Tagihan ditandai lunas & tercatat di transaksi');
     } catch (e) {
       SnackbarKustom.error('Error', 'Gagal memproses pembayaran: $e');
     }

@@ -15,7 +15,6 @@ class _SplashViewState extends State<SplashView> {
   void initState() {
     super.initState();
     Timer(const Duration(seconds: 3), () {
-      // Cek status login
       if (FirebaseAuth.instance.currentUser != null) {
         Get.offAllNamed('/dashboard');
       } else {

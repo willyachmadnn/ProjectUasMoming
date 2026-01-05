@@ -8,7 +8,7 @@ import '../../../controllers/transaksi_controllers.dart';
 import '../../../models/transaksi_models.dart';
 import '../../../models/kategori_models.dart';
 import '../../../utils/currency_formatter.dart';
-import 'atur_kategori_views.dart'; // Import halaman kategori baru
+import 'atur_kategori_views.dart';
 
 class DialogTambahTransaksi extends StatefulWidget {
   final KontrolerTransaksi controller;
@@ -81,8 +81,7 @@ class _DialogTambahTransaksiState extends State<DialogTambahTransaksi> {
 
     final tx = ModelTransaksi(
       id: widget.transaction?.id ?? '',
-      uid:
-          widget.transaction?.uid ??
+      uid: widget.transaction?.uid ??
           FirebaseAuth.instance.currentUser?.uid ??
           '',
       description: _descriptionController.text,
@@ -98,32 +97,21 @@ class _DialogTambahTransaksiState extends State<DialogTambahTransaksi> {
     } else {
       widget.controller.updateTransaction(tx);
     }
-
     Get.back();
-    Get.back();
+    if (widget.transaction != null) Get.back();
   }
 
-  void _showConfirmationDialog() {
+  void _showUpdateConfirmationDialog() {
     Get.defaultDialog(
-      title: "Konfirmasi",
-      titleStyle: TextStyle(
-        fontWeight: FontWeight.bold,
-        color: Theme.of(context).textTheme.titleLarge?.color,
-      ),
-      middleText: widget.transaction == null
-          ? "Apakah Anda yakin ingin menyimpan transaksi baru ini?"
-          : "Apakah Anda yakin ingin menyimpan perubahan data ini?",
-      middleTextStyle: TextStyle(
-        color: Theme.of(context).textTheme.bodyMedium?.color,
-      ),
+      title: "Konfirmasi Update",
+      radius: 12,
+      titleStyle: const TextStyle(fontWeight: FontWeight.bold),
+      middleText: "Apakah Anda yakin ingin menyimpan perubahan data ini?",
       textConfirm: "Ya, Simpan",
       textCancel: "Batal",
-      confirmTextColor: Theme.of(context).colorScheme.onPrimary,
-      cancelTextColor: Theme.of(context).colorScheme.primary,
+      confirmTextColor: Colors.white,
       buttonColor: Theme.of(context).primaryColor,
-      backgroundColor: Theme.of(context).cardColor,
       onConfirm: _processSave,
-      onCancel: () {},
     );
   }
 
@@ -135,7 +123,7 @@ class _DialogTambahTransaksiState extends State<DialogTambahTransaksi> {
       child: Container(
         width: context.width > 400 ? 400 : context.width * 0.9,
         constraints: BoxConstraints(maxHeight: context.height * 0.9),
-        padding: EdgeInsets.all(24),
+        padding: const EdgeInsets.all(24),
         child: SingleChildScrollView(
           child: Form(
             key: _formKey,
@@ -151,24 +139,18 @@ class _DialogTambahTransaksiState extends State<DialogTambahTransaksi> {
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                SizedBox(height: 24),
-
-                Text('Tipe:', style: TextStyle(fontWeight: FontWeight.bold)),
-                SizedBox(height: 8),
+                const SizedBox(height: 24),
+                const Text('Tipe:', style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
                 Row(
                   children: [
                     Expanded(
                       child: ChoiceChip(
-                        label: Container(
-                          alignment: Alignment.center,
-                          width: double.infinity,
-                          child: Text('Pengeluaran'),
-                        ),
+                        label: const SizedBox(
+                            width: double.infinity,
+                            child: Text('Pengeluaran', textAlign: TextAlign.center)),
                         selected: _isExpense,
                         onSelected: (val) {
                           setState(() {
@@ -176,28 +158,14 @@ class _DialogTambahTransaksiState extends State<DialogTambahTransaksi> {
                             _updateCategorySelection();
                           });
                         },
-                        selectedColor: Theme.of(
-                          context,
-                        ).colorScheme.error.withValues(alpha: 0.2),
-                        backgroundColor: Theme.of(context).cardColor,
-                        labelStyle: TextStyle(
-                          color: _isExpense
-                              ? Theme.of(context).colorScheme.error
-                              : Theme.of(context).textTheme.bodyMedium?.color,
-                          fontWeight: _isExpense
-                              ? FontWeight.bold
-                              : FontWeight.normal,
-                        ),
                       ),
                     ),
-                    SizedBox(width: 12),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: ChoiceChip(
-                        label: Container(
-                          alignment: Alignment.center,
-                          width: double.infinity,
-                          child: Text('Pemasukan'),
-                        ),
+                        label: const SizedBox(
+                            width: double.infinity,
+                            child: Text('Pemasukan', textAlign: TextAlign.center)),
                         selected: !_isExpense,
                         onSelected: (val) {
                           setState(() {
@@ -205,98 +173,43 @@ class _DialogTambahTransaksiState extends State<DialogTambahTransaksi> {
                             _updateCategorySelection();
                           });
                         },
-                        selectedColor: Colors.green.withValues(alpha: 0.2),
-                        backgroundColor: Theme.of(context).cardColor,
-                        labelStyle: TextStyle(
-                          color: !_isExpense
-                              ? Colors.green
-                              : Theme.of(context).textTheme.bodyMedium?.color,
-                          fontWeight: !_isExpense
-                              ? FontWeight.bold
-                              : FontWeight.normal,
-                        ),
                       ),
                     ),
                   ],
                 ),
-                SizedBox(height: 16),
-
-                // UPDATE: Dropdown Kategori + Tombol Setting
+                const SizedBox(height: 16),
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
                       child: Obx(() {
-                        // Memaksa rebuild saat list kategori di controller berubah
-                        // trik: akses widget.controller.categories.length agar reactive
-                        // ignore: unused_local_variable
-                        final trigger = widget.controller.categories.length;
-
-                        // Validasi ulang jika kategori terpilih tiba-tiba dihapus
-                        if (!_filteredCategories.any(
-                          (c) => c.name == _selectedCategory,
-                        )) {
-                          if (_filteredCategories.isNotEmpty) {
-                            _selectedCategory = _filteredCategories.first.name;
-                          } else {
-                            _selectedCategory = 'Other';
-                          }
+                        if (!_filteredCategories
+                            .any((c) => c.name == _selectedCategory)) {
+                          _selectedCategory = _filteredCategories.isNotEmpty
+                              ? _filteredCategories.first.name
+                              : 'Other';
                         }
-
                         return DropdownButtonFormField<String>(
-                          value:
-                              _filteredCategories.any(
-                                (c) => c.name == _selectedCategory,
-                              )
-                              ? _selectedCategory
-                              : null,
+                          value: _selectedCategory,
                           decoration: InputDecoration(
-                            labelText: 'Kategori',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            prefixIcon: Icon(Icons.category_outlined),
-                          ),
-                          items: _filteredCategories
-                              .map((c) => c.name)
-                              .toSet()
-                              .map((name) {
-                                return DropdownMenuItem(
-                                  value: name,
-                                  child: Text(name),
-                                );
-                              })
-                              .toList(),
-                          onChanged: (val) => setState(
-                            () => _selectedCategory = val ?? 'Other',
-                          ),
+                              labelText: 'Kategori',
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))), // PERBAIKAN: Rounded border
+                          items: _filteredCategories.map((c) {
+                            return DropdownMenuItem(
+                                value: c.name, child: Text(c.name));
+                          }).toList(),
+                          onChanged: (val) =>
+                              setState(() => _selectedCategory = val!),
                         );
                       }),
                     ),
-                    SizedBox(width: 8),
-                    Container(
-                      height: 56, // Menyesuaikan tinggi input field default
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: Theme.of(context).dividerColor,
-                        ),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: IconButton(
-                        icon: Icon(
-                          Icons.settings,
-                          color: Theme.of(context).iconTheme.color,
-                        ),
-                        tooltip: "Atur Kategori",
-                        onPressed: () {
-                          Get.to(() => AturKategoriViews());
-                        },
-                      ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(Icons.settings),
+                      onPressed: () => Get.to(() => const AturKategoriViews()),
                     ),
                   ],
                 ),
-                SizedBox(height: 16),
-
+                const SizedBox(height: 16),
                 InkWell(
                   onTap: () async {
                     final picked = await showDatePicker(
@@ -304,99 +217,69 @@ class _DialogTambahTransaksiState extends State<DialogTambahTransaksi> {
                       initialDate: _selectedDate,
                       firstDate: DateTime(2020),
                       lastDate: DateTime(2030),
-                      locale: const Locale('id', 'ID'),
                     );
                     if (picked != null) setState(() => _selectedDate = picked);
                   },
                   child: InputDecorator(
                     decoration: InputDecoration(
-                      labelText: 'Tanggal',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.calendar_today),
-                    ),
-                    child: Text(
-                      DateFormat('d MMMM yyyy', 'id').format(_selectedDate),
-                    ),
+                        labelText: 'Tanggal',
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        prefixIcon: const Icon(Icons.calendar_today)),
+                    child: Text(DateFormat('d MMMM yyyy', 'id').format(_selectedDate)),
                   ),
                 ),
-                SizedBox(height: 16),
-
+                const SizedBox(height: 16),
                 TextFormField(
                   controller: _amountController,
                   decoration: InputDecoration(
-                    labelText: 'Jumlah (Rp)',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    labelText: 'Jumlah',
+                    prefixText: 'Rp ',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   keyboardType: TextInputType.number,
                   inputFormatters: [
                     FilteringTextInputFormatter.digitsOnly,
                     CurrencyInputFormatter(),
                   ],
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Jumlah harus diisi';
-                    }
-                    return null;
-                  },
+                  validator: (value) =>
+                  (value == null || value.isEmpty) ? 'Jumlah harus diisi' : null,
                 ),
-                SizedBox(height: 16),
-
+                const SizedBox(height: 16),
                 TextFormField(
                   controller: _descriptionController,
                   decoration: InputDecoration(
-                    labelText: 'Keterangan',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
+                      labelText: 'Keterangan',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
                   maxLines: 3,
                 ),
-                SizedBox(height: 24),
-
+                const SizedBox(height: 24),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     TextButton(
                       style: TextButton.styleFrom(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 12,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                       onPressed: () => Get.back(),
-                      child: Text(
-                        "Batal",
-                        style: TextStyle(color: Theme.of(context).primaryColor),
-                      ),
+                      child: const Text("Batal"),
                     ),
-                    SizedBox(width: 12),
+                    const SizedBox(width: 12),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 12,
-                        ),
                         backgroundColor: Theme.of(context).primaryColor,
-                        foregroundColor: Theme.of(
-                          context,
-                        ).colorScheme.onPrimary,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
-                          _showConfirmationDialog();
+                          if (widget.transaction == null) {
+                            _processSave();
+                          } else {
+                            _showUpdateConfirmationDialog();
+                          }
                         }
                       },
-                      child: Text(
-                        widget.transaction == null ? 'Simpan' : 'Update',
-                      ),
+                      child: Text(widget.transaction == null ? 'Simpan' : 'Update'),
                     ),
                   ],
                 ),

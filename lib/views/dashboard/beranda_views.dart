@@ -13,8 +13,6 @@ class TampilanBeranda extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final KontrolerBeranda controller = Get.put(KontrolerBeranda());
-
-    // 1. Definisikan Format Rupiah Penuh
     final fullCurrencyFormat = NumberFormat.currency(
       locale: 'id_ID',
       symbol: 'Rp ',
@@ -30,20 +28,18 @@ class TampilanBeranda extends StatelessWidget {
           controller.bindStreams();
         },
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(20.0),
+          padding: const EdgeInsets.all(20.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // --- 1. BAGIAN HEADER (SPLIT LAYOUT) ---
               IntrinsicHeight(
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // KIRI: TOTAL SALDO
                     Expanded(
                       flex: 6,
                       child: Container(
-                        padding: EdgeInsets.all(20),
+                        padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
                           color: Theme.of(context).cardColor,
                           borderRadius: BorderRadius.circular(20),
@@ -52,16 +48,16 @@ class TampilanBeranda extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(
+                            const Text(
                               'Total Saldo',
                               style: TextStyle(
                                 color: Colors.grey,
                                 fontSize: 12,
                               ),
                             ),
-                            SizedBox(height: 8),
+                            const SizedBox(height: 8),
                             Obx(
-                              () => Text(
+                                  () => Text(
                                 fullCurrencyFormat.format(
                                   controller.totalBalance.value,
                                 ),
@@ -72,19 +68,19 @@ class TampilanBeranda extends StatelessWidget {
                                 ),
                               ),
                             ),
-                            SizedBox(height: 12),
+                            const SizedBox(height: 12),
                             Obx(
-                              () => Container(
-                                padding: EdgeInsets.symmetric(
+                                  () => Container(
+                                padding: const EdgeInsets.symmetric(
                                   horizontal: 8,
                                   vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
                                   color:
-                                      (controller.isTrendUp.value
-                                              ? Colors.green
-                                              : Colors.red)
-                                          .withOpacity(0.1),
+                                  (controller.isTrendUp.value
+                                      ? Colors.green
+                                      : Colors.red)
+                                      .withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Row(
@@ -99,7 +95,7 @@ class TampilanBeranda extends StatelessWidget {
                                           : Colors.red,
                                       size: 12,
                                     ),
-                                    SizedBox(width: 4),
+                                    const SizedBox(width: 4),
                                     Text(
                                       "${controller.trendPercentage.value.toStringAsFixed(1)}% bulan lalu",
                                       style: TextStyle(
@@ -118,10 +114,7 @@ class TampilanBeranda extends StatelessWidget {
                         ),
                       ),
                     ),
-
-                    SizedBox(width: 12),
-
-                    // KANAN: INCOME & EXPENSE
+                    const SizedBox(width: 12),
                     Expanded(
                       flex: 4,
                       child: Column(
@@ -134,7 +127,7 @@ class TampilanBeranda extends StatelessWidget {
                               Colors.blue,
                             ),
                           ),
-                          SizedBox(height: 12),
+                          const SizedBox(height: 12),
                           Expanded(
                             child: _buildSmallCard(
                               context,
@@ -149,12 +142,9 @@ class TampilanBeranda extends StatelessWidget {
                   ],
                 ),
               ),
-
-              SizedBox(height: 20),
-
-              // --- 2. STATUS ANGGARAN (Full Width) ---
+              const SizedBox(height: 20),
               Container(
-                padding: EdgeInsets.all(20),
+                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(20),
@@ -162,20 +152,26 @@ class TampilanBeranda extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      "Status Anggaran",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          "Total Tabungan",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                        Icon(Icons.savings, color: Colors.amber[700], size: 20),
+                      ],
                     ),
-                    SizedBox(height: 15),
+                    const SizedBox(height: 15),
                     Obx(() {
-                      double limit = controller.budgetLimit.value;
-                      double used = controller.totalExpense.value;
-                      double percentage = limit == 0
+                      double current = controller.totalSavingsCurrent.value;
+                      double target = controller.totalSavingsTarget.value;
+                      double percentage = target == 0
                           ? 0
-                          : (used / limit).clamp(0.0, 1.0);
+                          : (current / target).clamp(0.0, 1.0);
 
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -184,28 +180,26 @@ class TampilanBeranda extends StatelessWidget {
                             borderRadius: BorderRadius.circular(10),
                             child: LinearProgressIndicator(
                               value: percentage,
-                              minHeight: 12,
+                              minHeight: 15,
                               backgroundColor: Colors.grey.withOpacity(0.1),
-                              color: percentage > 0.9
-                                  ? Colors.red
-                                  : Colors.green,
+                              color: Colors.blueAccent,
                             ),
                           ),
-                          SizedBox(height: 8),
-                          // --- PERBAIKAN DI SINI (Status Anggaran Full Format) ---
+                          const SizedBox(height: 8),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                '${fullCurrencyFormat.format(used)} terpakai',
-                                style: TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 11,
+                                '${fullCurrencyFormat.format(current)} terkumpul',
+                                style: const TextStyle(
+                                  color: Colors.black87,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                               Text(
-                                'dari ${fullCurrencyFormat.format(limit)}',
-                                style: TextStyle(
+                                'Target: ${NumberFormat.compactCurrency(locale: 'id_ID', symbol: 'Rp', decimalDigits: 0).format(target)}',
+                                style: const TextStyle(
                                   color: Colors.grey,
                                   fontSize: 11,
                                 ),
@@ -218,29 +212,26 @@ class TampilanBeranda extends StatelessWidget {
                   ],
                 ),
               ),
-
-              SizedBox(height: 20),
-
-              // --- 3. GRAFIK SEJAJAR ---
+              const SizedBox(height: 20),
               Row(
                 children: [
                   Expanded(
                     child: SizedBox(
                       height: 200,
                       child: Obx(
-                        () => GrafikDonat(
+                            () => GrafikDonat(
                           data: controller.categoryStats,
                           total: controller.totalExpense.value,
                         ),
                       ),
                     ),
                   ),
-                  SizedBox(width: 12),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: SizedBox(
                       height: 200,
                       child: Obx(
-                        () => GrafikLine(
+                            () => GrafikLine(
                           incomeSpots: controller.incomeSpots,
                           expenseSpots: controller.expenseSpots,
                           maxY: controller.maxChartY.value,
@@ -250,8 +241,111 @@ class TampilanBeranda extends StatelessWidget {
                   ),
                 ],
               ),
+              const SizedBox(height: 20),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).cardColor,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          "Jadwal Pembayaran",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
 
-              SizedBox(height: 30),
+                    SizedBox(
+                      height: 75,
+                      child: Obx(() {
+                        if (controller.upcomingSchedules.isEmpty) {
+                          return const Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.check_circle_outline,
+                                    size: 40, color: Colors.grey),
+                                SizedBox(height: 8),
+                                Text("Tidak ada tagihan mendatang",
+                                    style: TextStyle(color: Colors.grey)),
+                              ],
+                            ),
+                          );
+                        }
+
+                        return ListView.separated(
+                          physics: const BouncingScrollPhysics(),
+                          itemCount: controller.upcomingSchedules.length,
+                          separatorBuilder: (context, index) =>
+                          const Divider(height: 1),
+                          itemBuilder: (context, index) {
+                            final item = controller.upcomingSchedules[index];
+                            final isOverdue =
+                                item.dueDate.isBefore(DateTime.now()) &&
+                                    !item.isPaid;
+
+                            return ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              leading: Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: isOverdue
+                                      ? Colors.red.withOpacity(0.1)
+                                      : Colors.blue.withOpacity(0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.calendar_today,
+                                  color: isOverdue ? Colors.red : Colors.blue,
+                                  size: 20,
+                                ),
+                              ),
+                              title: Text(
+                                item.name,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              subtitle: Text(
+                                DateFormat('EEEE, dd MMM yyyy', 'id_ID')
+                                    .format(item.dueDate),
+                                style: TextStyle(
+                                  color: isOverdue ? Colors.red : Colors.grey,
+                                  fontSize: 12,
+                                  fontWeight: isOverdue
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                                ),
+                              ),
+                              trailing: Text(
+                                fullCurrencyFormat.format(item.amount),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      }),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 30),
             ],
           ),
         ),
@@ -259,14 +353,12 @@ class TampilanBeranda extends StatelessWidget {
     );
   }
 
-  // --- PERBAIKAN DI SINI (Kartu Kecil Full Format) ---
   Widget _buildSmallCard(
-    BuildContext context,
-    String title,
-    RxDouble value,
-    Color color,
-  ) {
-    // Gunakan format currency penuh
+      BuildContext context,
+      String title,
+      RxDouble value,
+      Color color,
+      ) {
     final fullFormat = NumberFormat.currency(
       locale: 'id_ID',
       symbol: 'Rp ',
@@ -275,7 +367,7 @@ class TampilanBeranda extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
@@ -291,14 +383,14 @@ class TampilanBeranda extends StatelessWidget {
               fontSize: 10,
             ),
           ),
-          SizedBox(height: 4),
+          const SizedBox(height: 4),
           Obx(
-            () => Text(
+                () => Text(
               fullFormat.format(value.value),
-              style: TextStyle(
+              style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 13,
-              ), // Font sedikit dikecilkan agar muat
+              ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),

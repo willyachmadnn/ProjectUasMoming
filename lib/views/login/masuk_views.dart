@@ -14,7 +14,6 @@ class TampilanMasuk extends StatelessWidget {
         usernameCtrl.text = args['username'];
       }
     } else {
-      // Load saved credentials if available
       final saved = authCtrl.getSavedCredentials();
       if (saved['username']?.isNotEmpty ?? false) {
         usernameCtrl.text = saved['username']!;
@@ -26,7 +25,6 @@ class TampilanMasuk extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // 1. Background Abu-abu Muda -> Ikuti Tema
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: LayoutBuilder(
         builder: (context, constraints) {
@@ -59,7 +57,6 @@ class TampilanMasuk extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        // 2. Background Container (Kartu) menjadi Putih
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
@@ -74,7 +71,6 @@ class TampilanMasuk extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // HEADER (Logo & Judul)
           Center(
             child: Column(
               children: [
@@ -109,7 +105,6 @@ class TampilanMasuk extends StatelessWidget {
 
           const SizedBox(height: 30),
 
-          // FORM INPUT (Floating Label)
           _buildFloatingLabelTextField(
             context,
             label: 'Username',
@@ -129,12 +124,9 @@ class TampilanMasuk extends StatelessWidget {
           ),
 
           const SizedBox(height: 12),
-
-          // REMEMBER ME & LUPA PASSWORD
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Remember Me
               Obx(
                 () => Row(
                   children: [
@@ -163,7 +155,6 @@ class TampilanMasuk extends StatelessWidget {
                 ),
               ),
 
-              // Lupa Password
               TextButton(
                 onPressed: () => Get.toNamed('/lupa_password'),
                 style: TextButton.styleFrom(
@@ -185,7 +176,6 @@ class TampilanMasuk extends StatelessWidget {
 
           const SizedBox(height: 24),
 
-          // TEKS DAFTAR BARU
           Row(
             children: [
               Text(
@@ -208,7 +198,6 @@ class TampilanMasuk extends StatelessWidget {
 
           const SizedBox(height: 12),
 
-          // TOMBOL MASUK
           Obx(
             () => authCtrl.isLoading.value
                 ? const Center(child: CircularProgressIndicator())
@@ -241,7 +230,6 @@ class TampilanMasuk extends StatelessWidget {
 
           const SizedBox(height: 20),
 
-          // ATAU LOGIN GOOGLE
           Row(
             children: [
               const Expanded(child: Divider()),
@@ -293,8 +281,6 @@ class TampilanMasuk extends StatelessWidget {
       ),
     );
   }
-
-  // --- WIDGET HELPER INPUT FLOATING LABEL ---
   Widget _buildFloatingLabelTextField(
     BuildContext context, {
     required String label,
@@ -332,11 +318,8 @@ class TampilanMasuk extends StatelessWidget {
               )
             : null,
 
-        // 3. Background Kolom Putih -> Theme
         filled: true,
         fillColor: Theme.of(context).cardColor,
-
-        // Border Styles
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: Theme.of(context).dividerColor),

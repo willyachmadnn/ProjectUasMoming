@@ -30,21 +30,18 @@ class TampilanTransaksi extends StatelessWidget {
           children: [
             const BarFilterTransaksi(),
 
-            // TOMBOL AKSI
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text("Riwayat Transaksi", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 Row(
                   children: [
-                    // TOMBOL INI MEMBUKA HALAMAN MANAJEMEN KATEGORI
                     IconButton(
                       onPressed: () => Get.to(() => const AturKategoriViews()),
                       icon: const Icon(Icons.category_outlined),
                       tooltip: "Atur Kategori",
                     ),
                     const SizedBox(width: 8),
-                    // TOMBOL TAMBAH TRANSAKSI
                     ElevatedButton.icon(
                       onPressed: () => Get.dialog(DialogTambahTransaksi(controller: controller)),
                       style: ElevatedButton.styleFrom(

@@ -113,7 +113,6 @@ class GrafikLine extends StatelessWidget {
                     handleBuiltInTouches: false,
                     touchCallback:
                         (FlTouchEvent event, LineTouchResponse? response) {
-                          // LOGIKA SENTUH: Tampilkan saat ditekan/digeser
                           if (event is FlTapDownEvent ||
                               event is FlPanDownEvent ||
                               event is FlPanUpdateEvent) {

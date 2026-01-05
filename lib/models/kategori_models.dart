@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class ModelKategori {
   final String id;
   final String name;
-  final String type; // 'income' or 'expense'
+  final String type;
 
   ModelKategori({
     required this.id,

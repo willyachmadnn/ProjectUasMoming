@@ -10,7 +10,10 @@ import '../widgets/app_bar_kustom.dart';
 import 'tabungan_card.dart';
 import 'tabungan_form.dart';
 import 'isi_tabungan_form.dart';
-import 'riwayat_tabungan_model.dart'; // Pastikan path ini benar
+import '../../controllers/transaksi_controllers.dart';
+import '../../models/transaksi_models.dart';
+
+import 'riwayat_tabungan_model.dart';
 
 class TampilanTabungan extends StatefulWidget {
   const TampilanTabungan({super.key});
@@ -20,15 +23,10 @@ class TampilanTabungan extends StatefulWidget {
 }
 
 class _TampilanTabunganState extends State<TampilanTabungan> {
-  // Menggunakan RxList agar riwayat update otomatis tanpa setState
   final RxList<RiwayatTabungan> riwayatList = <RiwayatTabungan>[].obs;
 
   @override
   Widget build(BuildContext context) {
-    // --- SOLUSI UTAMA ERROR ---
-    // Gunakan Get.put() di sini.
-    // Jika controller belum ada, dia akan membuatnya.
-    // Jika sudah ada, dia akan mengambil yang sudah ada (seperti Get.find).
     final KontrolerTabungan tabunganC = Get.put(KontrolerTabungan());
 
     return Scaffold(
@@ -37,9 +35,6 @@ class _TampilanTabunganState extends State<TampilanTabungan> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // ===============================
-          // TOTAL TABUNGAN
-          // ===============================
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -52,7 +47,6 @@ class _TampilanTabunganState extends State<TampilanTabungan> {
                   return const Center(child: Text('Belum ada tabungan aktif'));
                 }
 
-                // Menghitung Total Target dan Total Terkumpul dari semua tabungan
                 final totalTarget = tabunganC.tabunganList.fold<double>(
                   0,
                   (sum, e) => sum + e.targetAmount,
@@ -118,9 +112,6 @@ class _TampilanTabunganState extends State<TampilanTabungan> {
 
           const SizedBox(height: 20),
 
-          // ===============================
-          // TARGET TABUNGAN (LIST)
-          // ===============================
           const Text(
             'Daftar Target',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -152,9 +143,6 @@ class _TampilanTabunganState extends State<TampilanTabungan> {
 
           const SizedBox(height: 20),
 
-          // ===============================
-          // TOMBOL AKSI (MENGGUNAKAN GET.TO)
-          // ===============================
           Row(
             children: [
               Expanded(
@@ -179,14 +167,25 @@ class _TampilanTabunganState extends State<TampilanTabungan> {
                     foregroundColor: Theme.of(context).colorScheme.onSecondary,
                   ),
                   onPressed: () async {
-                    // Navigasi dengan GetX & Menunggu Hasil
                     final result = await Get.to(() => const IsiTabunganForm());
 
                     if (result != null && result is RiwayatTabungan) {
-                      // Menambah ke list lokal (reactive)
                       riwayatList.add(result);
-                      // TODO: Idealnya panggil method di controller untuk simpan ke database
-                      // tabunganC.tambahRiwayat(result);
+                      final transaksiController =
+                          Get.find<KontrolerTransaksi>();
+                      final transaksi = ModelTransaksi(
+                        id: '',
+                        uid: '',
+                        description:
+                            'Menabung: ${result.nominal}',
+                        amount: result.nominal.toDouble(),
+                        category: 'Tabungan',
+                        type: 'expense',
+                        date: result.tanggal,
+                        isExpense: true,
+                      );
+
+                      await transaksiController.addTransaction(transaksi);
                     }
                   },
                   icon: const Icon(Icons.savings),
@@ -197,17 +196,11 @@ class _TampilanTabunganState extends State<TampilanTabungan> {
           ),
 
           const SizedBox(height: 20),
-
-          // ===============================
-          // RIWAYAT TABUNGAN
-          // ===============================
           const Text(
             'Riwayat Transaksi',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 10),
-
-          // Menggunakan Obx untuk riwayatList
           Obx(() {
             if (riwayatList.isEmpty) {
               return const Padding(
@@ -216,7 +209,6 @@ class _TampilanTabunganState extends State<TampilanTabungan> {
               );
             }
 
-            // Kita balik listnya agar yang terbaru di atas (.reversed)
             return Column(
               children: riwayatList.reversed.map((e) {
                 return Card(
@@ -249,7 +241,6 @@ class _TampilanTabunganState extends State<TampilanTabungan> {
                         color: Theme.of(context).colorScheme.error,
                       ),
                       onPressed: () {
-                        // Menghapus dari list reactive
                         riwayatList.remove(e);
                       },
                     ),
@@ -258,8 +249,6 @@ class _TampilanTabunganState extends State<TampilanTabungan> {
               }).toList(),
             );
           }),
-
-          // Padding bawah agar tidak tertutup tombol navigasi HP
           const SizedBox(height: 30),
         ],
       ),

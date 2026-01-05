@@ -8,7 +8,7 @@ class ModelJadwalPembayaran {
   final bool isPaid;
   final String? category;
   final String? notes;
-  final String recurrence; // 'none', 'daily', 'weekly', 'monthly'
+  final String recurrence;
 
   ModelJadwalPembayaran({
     required this.id,

@@ -1,22 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import '../../../../controllers/transaksi_controllers.dart'; // Sesuaikan path import controller
+import '../../../../controllers/transaksi_controllers.dart';
 
 class BarFilterTransaksi extends StatelessWidget {
   const BarFilterTransaksi({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Ambil controller yang sudah di-put di view induk
     final controller = Get.find<KontrolerTransaksi>();
     final dateFormat = DateFormat('dd/MM/yyyy');
 
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
-      height: 50, // Tinggi fix agar rapi
+      height: 50,
       child: Obx(() {
-        // --- MODE 1: PENCARIAN AKTIF ---
         if (controller.isSearchOpen.value) {
           return Row(
             children: [
@@ -48,7 +46,6 @@ class BarFilterTransaksi extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 10),
-              // Tombol Close (X)
               GestureDetector(
                 onTap: () => controller.toggleSearch(),
                 child: Container(
@@ -75,10 +72,8 @@ class BarFilterTransaksi extends StatelessWidget {
           );
         }
 
-        // --- MODE 2: DEFAULT HEADER (Search Icon - Kalender - Kategori) ---
         return Row(
           children: [
-            // 1. TOMBOL SEARCH (KIRI)
             GestureDetector(
               onTap: () => controller.toggleSearch(),
               child: Container(
@@ -87,7 +82,6 @@ class BarFilterTransaksi extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(12),
-                  // Efek border tipis agar terlihat seperti tombol
                   border: Border.all(color: Theme.of(context).dividerColor),
                 ),
                 child: Icon(
@@ -99,12 +93,10 @@ class BarFilterTransaksi extends StatelessWidget {
 
             const SizedBox(width: 10),
 
-            // 2. KALENDER (TENGAH - Expanded)
             Expanded(
               flex: 3,
               child: GestureDetector(
                 onTap: () async {
-                  // Munculkan Date Range Picker bawaan Flutter
                   DateTimeRange? picked = await showDateRangePicker(
                     context: context,
                     firstDate: DateTime(2020),
@@ -112,7 +104,7 @@ class BarFilterTransaksi extends StatelessWidget {
                     initialDateRange: controller.selectedDateRange.value,
                     builder: (context, child) {
                       return Theme(
-                        data: Theme.of(context), // Gunakan tema aplikasi
+                        data: Theme.of(context),
                         child: child!,
                       );
                     },
@@ -139,7 +131,6 @@ class BarFilterTransaksi extends StatelessWidget {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          // Format: 01/01/2026 - 31/01/2026
                           "${dateFormat.format(controller.selectedDateRange.value.start)} - ${dateFormat.format(controller.selectedDateRange.value.end)}",
                           style: TextStyle(
                             fontSize: 11,
@@ -157,7 +148,6 @@ class BarFilterTransaksi extends StatelessWidget {
 
             const SizedBox(width: 10),
 
-            // 3. KATEGORI (KANAN - Expanded)
             Expanded(
               flex: 2,
               child: Container(

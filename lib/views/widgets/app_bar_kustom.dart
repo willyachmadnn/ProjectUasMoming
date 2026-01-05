@@ -15,7 +15,6 @@ class AppBarKustom extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      // Explicitly define leading to ensure Drawer works reliably
       leading: Builder(
         builder: (context) => IconButton(
           icon: Icon(Icons.menu),
@@ -25,10 +24,8 @@ class AppBarKustom extends StatelessWidget implements PreferredSizeWidget {
           tooltip: 'Menu',
         ),
       ),
-      // Title removed as per request
       centerTitle: false, 
       actions: [
-        // 1. Theme Toggle
         Obx(
           () => IconButton(
             icon: AnimatedSwitcher(
@@ -47,7 +44,6 @@ class AppBarKustom extends StatelessWidget implements PreferredSizeWidget {
         ),
         SizedBox(width: 8),
 
-        // 2. Profile Component (Static)
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
           child: Row(
@@ -69,11 +65,10 @@ class AppBarKustom extends StatelessWidget implements PreferredSizeWidget {
         ),
         SizedBox(width: 8),
 
-        // 3. Settings Icon
         IconButton(
           icon: Icon(Icons.settings),
           onPressed: () {
-            appCtrl.changeMenu(4); // Set active menu to Settings (index 4)
+            appCtrl.changeMenu(4);
             Get.toNamed('/akun');
           },
           tooltip: 'Pengaturan',

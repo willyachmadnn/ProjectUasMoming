@@ -27,7 +27,6 @@ class _TabunganFormState extends State<TabunganForm> {
           key: _formKey,
           child: ListView(
             children: [
-              // NAMA TARGET
               TextFormField(
                 controller: namaController,
                 decoration: const InputDecoration(
@@ -44,7 +43,6 @@ class _TabunganFormState extends State<TabunganForm> {
 
               const SizedBox(height: 16),
 
-              // NOMINAL TARGET
               TextFormField(
                 controller: targetController,
                 keyboardType: TextInputType.number,
@@ -63,7 +61,6 @@ class _TabunganFormState extends State<TabunganForm> {
 
               const SizedBox(height: 16),
 
-              // DEADLINE
               ListTile(
                 contentPadding: EdgeInsets.zero,
                 title: const Text('Deadline'),
@@ -91,7 +88,6 @@ class _TabunganFormState extends State<TabunganForm> {
 
               const SizedBox(height: 24),
 
-              // TOMBOL SIMPAN
               ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate() &&
