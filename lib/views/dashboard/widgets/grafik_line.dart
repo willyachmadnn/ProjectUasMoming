@@ -3,18 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../../../controllers/beranda_controllers.dart';
+import 'dart:math' as math;
+import 'package:financial/theme/app_theme.dart';
 
 class GrafikLine extends StatelessWidget {
-  final List<FlSpot> incomeSpots;
-  final List<FlSpot> expenseSpots;
-  final double maxY;
-
-  const GrafikLine({
-    super.key,
-    required this.incomeSpots,
-    required this.expenseSpots,
-    required this.maxY,
-  });
+  const GrafikLine({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -23,46 +16,6 @@ class GrafikLine extends StatelessWidget {
       locale: 'id_ID',
       symbol: 'Rp ',
       decimalDigits: 0,
-    );
-    final now = DateTime.now();
-    final daysInMonth = DateTime(now.year, now.month + 1, 0).day.toDouble();
-    final double bottomBuffer = maxY > 0 ? maxY * 0.15 : 100;
-
-    final incomeBarData = LineChartBarData(
-      spots: incomeSpots.isEmpty ? [const FlSpot(1, 0)] : incomeSpots,
-      isCurved: true,
-      color: Theme.of(context).primaryColor,
-      barWidth: 2,
-      dotData: const FlDotData(show: false),
-      belowBarData: BarAreaData(
-        show: true,
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Theme.of(context).primaryColor.withValues(alpha: 0.2),
-            Theme.of(context).primaryColor.withValues(alpha: 0.0),
-          ],
-        ),
-      ),
-    );
-    final expenseBarData = LineChartBarData(
-      spots: expenseSpots.isEmpty ? [const FlSpot(1, 0)] : expenseSpots,
-      isCurved: true,
-      color: Theme.of(context).colorScheme.error,
-      barWidth: 2,
-      dotData: const FlDotData(show: false),
-      belowBarData: BarAreaData(
-        show: true,
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Theme.of(context).colorScheme.error.withValues(alpha: 0.2),
-            Theme.of(context).colorScheme.error.withValues(alpha: 0.0),
-          ],
-        ),
-      ),
     );
 
     return Container(
@@ -85,6 +38,73 @@ class GrafikLine extends StatelessWidget {
           const SizedBox(height: 10),
           Expanded(
             child: Obx(() {
+              final incomeSpots = controller.incomeSpots;
+              final expenseSpots = controller.expenseSpots;
+              final maxY = controller.maxChartY.value;
+              final double bottomBuffer = maxY > 0 ? maxY * 0.15 : 100;
+              double actualMinX = 1;
+              double actualMaxX = 5;
+
+              final allSpots = [...incomeSpots, ...expenseSpots];
+
+              if (allSpots.isNotEmpty) {
+                actualMinX = allSpots.map((e) => e.x).reduce(math.min);
+                actualMaxX = allSpots.map((e) => e.x).reduce(math.max);
+
+                if (actualMinX == actualMaxX) {
+                  actualMaxX = actualMinX + 1;
+                }
+              } else {
+                final today = DateTime.now().day.toDouble();
+                actualMaxX = today;
+                actualMinX = (today - 4).clamp(1.0, today);
+              }
+
+              final incomeBarData = LineChartBarData(
+                spots: incomeSpots.isEmpty
+                    ? [FlSpot(actualMinX, 0)]
+                    : incomeSpots,
+                isCurved: true,
+                color: Theme.of(context).primaryColor,
+                barWidth: 2,
+                dotData: const FlDotData(show: false),
+                belowBarData: BarAreaData(
+                  show: true,
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Theme.of(context).primaryColor.withValues(alpha: 0.2),
+                      Theme.of(context).primaryColor.withValues(alpha: 0.0),
+                    ],
+                  ),
+                ),
+              );
+              final expenseBarData = LineChartBarData(
+                spots: expenseSpots.isEmpty
+                    ? [FlSpot(actualMinX, 0)]
+                    : expenseSpots,
+                isCurved: true,
+                color: Theme.of(context).colorScheme.error,
+                barWidth: 2,
+                dotData: const FlDotData(show: false),
+                belowBarData: BarAreaData(
+                  show: true,
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Theme.of(
+                        context,
+                      ).colorScheme.error.withValues(alpha: 0.2),
+                      Theme.of(
+                        context,
+                      ).colorScheme.error.withValues(alpha: 0.0),
+                    ],
+                  ),
+                ),
+              );
+
               return LineChart(
                 LineChartData(
                   showingTooltipIndicators:
@@ -122,9 +142,7 @@ class GrafikLine extends StatelessWidget {
                               controller.touchedIndexLine.value =
                                   response.lineBarSpots!.first.spotIndex;
                             }
-                          }
-                          // LOGIKA LEPAS: Hilangkan saat jari diangkat/batal
-                          else if (event is FlTapUpEvent ||
+                          } else if (event is FlTapUpEvent ||
                               event is FlPanEndEvent ||
                               event is FlPanCancelEvent ||
                               event is FlLongPressEnd) {
@@ -132,7 +150,7 @@ class GrafikLine extends StatelessWidget {
                           }
                         },
                     touchTooltipData: LineTouchTooltipData(
-                      getTooltipColor: (_) => Colors.blueGrey.shade900,
+                      getTooltipColor: (_) => AppTheme.backgroundDark,
                       fitInsideHorizontally: true,
                       getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
                         return touchedBarSpots.map((barSpot) {
@@ -142,8 +160,8 @@ class GrafikLine extends StatelessWidget {
                             'Tgl ${flSpot.x.toInt()} \n${currencyFormat.format(flSpot.y)}',
                             TextStyle(
                               color: isIncome
-                                  ? Colors.blueAccent
-                                  : Colors.redAccent,
+                                  ? Theme.of(context).primaryColor
+                                  : Theme.of(context).colorScheme.error,
                               fontWeight: FontWeight.bold,
                               fontSize: 12,
                             ),
@@ -151,7 +169,11 @@ class GrafikLine extends StatelessWidget {
                               TextSpan(
                                 text: isIncome ? '\n(Masuk)' : '\n(Keluar)',
                                 style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.7),
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodyLarge
+                                      ?.color
+                                      ?.withValues(alpha: 0.7),
                                   fontSize: 10,
                                   fontWeight: FontWeight.normal,
                                 ),
@@ -165,8 +187,8 @@ class GrafikLine extends StatelessWidget {
                   gridData: const FlGridData(show: false),
                   titlesData: const FlTitlesData(show: false),
                   borderData: FlBorderData(show: false),
-                  minX: 1,
-                  maxX: daysInMonth,
+                  minX: actualMinX,
+                  maxX: actualMaxX,
                   minY: -bottomBuffer,
                   maxY: maxY > 0 ? maxY * 1.2 : 1000,
                   lineBarsData: [incomeBarData, expenseBarData],

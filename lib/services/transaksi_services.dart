@@ -22,66 +22,15 @@ class LayananTransaksi {
     return _firestore.collection('users').doc(_userId).collection('categories');
   }
 
-  Future<List<ModelTransaksi>> getTransactions({
-    int limit = 10,
-    DocumentSnapshot? startAfter,
-    String? searchQuery,
-    String? category,
-    DateTime? month,
-  }) async {
-    if (_userId == null) return [];
-
-    Query query = _transactionsRef.orderBy('date', descending: true);
-
-    if (month != null) {
-      final startOfMonth = DateTime(month.year, month.month, 1);
-      final endOfMonth = DateTime(month.year, month.month + 1, 0, 23, 59, 59);
-      query = query
-          .where(
-        'date',
-        isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth),
-      )
-          .where('date', isLessThanOrEqualTo: Timestamp.fromDate(endOfMonth));
-    }
-
-    if (category != null && category != 'Semua Kategori') {
-      query = query.where('category', isEqualTo: category);
-    }
-
-    // Pagination
-    if (startAfter != null) {
-      query = query.startAfterDocument(startAfter);
-    }
-
-    query = query.limit(limit);
-
-    QuerySnapshot snapshot = await query.get();
-
-    List<ModelTransaksi> transactions = snapshot.docs.map((doc) {
-      return ModelTransaksi.fromFirestore(doc);
-    }).toList();
-
-    if (searchQuery != null && searchQuery.isNotEmpty) {
-      transactions = transactions
-          .where(
-            (t) =>
-            t.description.toLowerCase().contains(searchQuery.toLowerCase()),
-      )
-          .toList();
-    }
-
-    return transactions;
-  }
-
   Stream<QuerySnapshot> getTransactionsStream({
     int limit = 10,
     DocumentSnapshot? startAfter,
     String? category,
     DateTime? month,
   }) {
-    if (_userId == null) {
-      return const Stream.empty();
-    }
+    // PERBAIKAN: Jangan return Stream.empty() jika user null.
+    // Biarkan query jalan dengan uid null, hasilnya akan kosong dan loading berhenti.
+
     Query query = _transactionsRef.where('uid', isEqualTo: _userId);
     query = query.orderBy('date', descending: true);
 
@@ -108,29 +57,36 @@ class LayananTransaksi {
 
     return query.snapshots();
   }
+
   Future<void> addTransaction(ModelTransaksi transaction) async {
     if (_userId == null) {
-      print("Warning: Adding transaction as Guest");
+      throw Exception("User tidak ditemukan, mohon login ulang");
     }
     final data = transaction.toJson();
     data['uid'] = _userId;
     await _transactionsRef.add(data);
   }
+
   Future<void> updateTransaction(ModelTransaksi transaction) async {
     await _transactionsRef.doc(transaction.id).update(transaction.toJson());
   }
+
   Future<void> deleteTransaction(String id) async {
     await _transactionsRef.doc(id).delete();
   }
+
   Future<void> addCategory(ModelKategori category) async {
     await _categoriesRef.add(category.toJson());
   }
+
   Future<void> updateCategory(ModelKategori category) async {
     await _categoriesRef.doc(category.id).update(category.toJson());
   }
+
   Future<void> deleteCategory(String id) async {
     await _categoriesRef.doc(id).delete();
   }
+
   Stream<List<ModelKategori>> getCategories() {
     if (_userId == null) return Stream.value([]);
     return _categoriesRef.snapshots().map((snapshot) {

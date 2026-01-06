@@ -9,7 +9,7 @@ class BarFilterTransaksi extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<KontrolerTransaksi>();
-    final dateFormat = DateFormat('dd/MM/yyyy');
+    final dateFormat = DateFormat('d MMMM yyyy', 'id_ID');
 
     return Container(
       margin: const EdgeInsets.only(bottom: 20),

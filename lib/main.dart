@@ -21,7 +21,6 @@ import 'controllers/jadwal_pembayaran_controllers.dart';
 import 'controllers/aplikasi_controllers.dart';
 import 'services/autentikasi_services.dart';
 
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('id_ID', null);

@@ -20,7 +20,7 @@ class TampilanLupaPassword extends StatelessWidget {
           ),
         ),
         centerTitle: true,
-        backgroundColor: Colors.transparent,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
           icon: Icon(
@@ -43,7 +43,7 @@ class TampilanLupaPassword extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Theme.of(context).shadowColor.withOpacity(0.1),
+                  color: Theme.of(context).shadowColor.withValues(alpha: 0.1),
                   offset: const Offset(0, 4),
                   blurRadius: 16,
                 ),
@@ -175,7 +175,7 @@ class TampilanUbahPassword extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Theme.of(context).shadowColor.withOpacity(0.1),
+                  color: Theme.of(context).shadowColor.withValues(alpha: 0.1),
                   offset: const Offset(0, 4),
                   blurRadius: 16,
                 ),
@@ -256,7 +256,9 @@ class TampilanUbahPassword extends StatelessWidget {
                                   backgroundColor: Theme.of(
                                     context,
                                   ).colorScheme.error,
-                                  colorText: Colors.white,
+                                  colorText: Theme.of(
+                                    context,
+                                  ).colorScheme.onError,
                                 );
                                 return;
                               }
@@ -268,7 +270,9 @@ class TampilanUbahPassword extends StatelessWidget {
                                   backgroundColor: Theme.of(
                                     context,
                                   ).colorScheme.error,
-                                  colorText: Colors.white,
+                                  colorText: Theme.of(
+                                    context,
+                                  ).colorScheme.onError,
                                 );
                                 return;
                               }
@@ -320,9 +324,7 @@ class TampilanUbahPassword extends StatelessWidget {
           fontWeight: FontWeight.bold,
         ),
         filled: true,
-        fillColor: Theme.of(
-          context,
-        ).scaffoldBackgroundColor,
+        fillColor: Theme.of(context).scaffoldBackgroundColor,
         suffixIcon: isPassword
             ? IconButton(
                 iconSize: 20,

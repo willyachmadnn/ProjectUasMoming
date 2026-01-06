@@ -1,123 +1,131 @@
-import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import '../../../models/tabungan_models.dart';
+import '../../../controllers/beranda_controllers.dart';
 
 class GrafikBatangTabungan extends StatelessWidget {
-  final List<ModelTabungan> savings;
-
-  const GrafikBatangTabungan({super.key, required this.savings});
+  const GrafikBatangTabungan({super.key});
 
   @override
   Widget build(BuildContext context) {
-    if (savings.isEmpty) {
-      return Center(
-        child: Text(
-          "Belum ada target tabungan",
-          style: TextStyle(color: Colors.grey, fontSize: 12),
-        ),
-      );
-    }
+    final controller = Get.find<KontrolerBeranda>();
 
-    // Ambil 5 tabungan terakhir/terpenting untuk ditampilkan agar tidak sesak
-    final displaySavings = savings.take(5).toList();
+    return Obx(() {
+      final current = controller.totalSavingsCurrent.value;
+      final target = controller.totalSavingsTarget.value;
 
-    return BarChart(
-      BarChartData(
-        alignment: BarChartAlignment.spaceAround,
-        maxY: _calculateMaxY(displaySavings),
-        barTouchData: BarTouchData(
-          enabled: true,
-          touchTooltipData: BarTouchTooltipData(
-            getTooltipColor: (group) => Theme.of(context).cardColor,
-            getTooltipItem: (group, groupIndex, rod, rodIndex) {
-              final saving = displaySavings[groupIndex];
-              return BarTooltipItem(
-                '${saving.title}\n',
-                const TextStyle(
-                  color: Colors.grey,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
-                children: <TextSpan>[
-                  TextSpan(
-                    text: NumberFormat.compactCurrency(
-                      locale: 'id_ID',
-                      symbol: 'Rp',
-                      decimalDigits: 0,
-                    ).format(rod.toY),
+      final double percentage = target == 0
+          ? 0.0
+          : (current / target * 100).clamp(0.0, 100.0);
+
+      if (target == 0) {
+        return Center(
+          child: Text(
+            "Belum ada target tabungan",
+            style: TextStyle(
+              color: Theme.of(context).disabledColor,
+              fontSize: 12,
+            ),
+          ),
+        );
+      }
+
+      return SizedBox(
+        height: 65,
+        child: Row(
+          children: [
+            Expanded(
+              flex: 2,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "${percentage.toStringAsFixed(0)}%",
                     style: TextStyle(
-                      color: Theme.of(context).primaryColor,
-                      fontSize: 14,
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
+                      color: Theme.of(context).primaryColor,
+                    ),
+                  ),
+                  Text(
+                    "Terkumpul",
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Theme.of(context).hintColor,
                     ),
                   ),
                 ],
-              );
-            },
-          ),
-        ),
-        titlesData: FlTitlesData(
-          show: true,
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              getTitlesWidget: (double value, TitleMeta meta) {
-                if (value.toInt() >= displaySavings.length)
-                  return const SizedBox();
-                // Tampilkan inisial nama tabungan
-                return Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: Text(
-                    displaySavings[value.toInt()].title
-                        .substring(0, 1)
-                        .toUpperCase(),
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 10,
-                    ),
-                  ),
-                );
-              },
+              ),
             ),
-          ),
-          leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-        ),
-        gridData: FlGridData(show: false),
-        borderData: FlBorderData(show: false),
-        barGroups: displaySavings.asMap().entries.map((entry) {
-          final index = entry.key;
-          final data = entry.value;
-          return BarChartGroupData(
-            x: index,
-            barRods: [
-              BarChartRodData(
-                toY: data.currentAmount,
-                color: Theme.of(context).primaryColor,
-                width: 12,
-                borderRadius: BorderRadius.circular(4),
-                backDrawRodData: BackgroundBarChartRodData(
-                  show: true,
-                  toY: data.targetAmount, // Target sebagai background bar
-                  color: Colors.grey.withOpacity(0.1),
+            Expanded(
+              flex: 8,
+              child: RotatedBox(
+                quarterTurns: 1,
+                child: BarChart(
+                  BarChartData(
+                    alignment: BarChartAlignment.center,
+                    maxY: 100,
+                    barTouchData: BarTouchData(
+                      enabled: true,
+                      touchTooltipData: BarTouchTooltipData(
+                        rotateAngle: -90,
+                        getTooltipColor: (group) => Theme.of(context).cardColor,
+                        getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                          return BarTooltipItem(
+                            'Total Tabungan\n',
+                            TextStyle(
+                              color: Theme.of(context).disabledColor,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                            children: <TextSpan>[
+                              TextSpan(
+                                text: NumberFormat.compactCurrency(
+                                  locale: 'id_ID',
+                                  symbol: 'Rp',
+                                  decimalDigits: 0,
+                                ).format(current),
+                                style: TextStyle(
+                                  color: Theme.of(context).primaryColor,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ),
+                    titlesData: FlTitlesData(show: false),
+                    gridData: const FlGridData(show: false),
+                    borderData: FlBorderData(show: false),
+                    barGroups: [
+                      BarChartGroupData(
+                        x: 0,
+                        barRods: [
+                          BarChartRodData(
+                            toY: percentage,
+                            color: Theme.of(context).primaryColor,
+                            width: 24,
+                            borderRadius: BorderRadius.circular(12),
+                            backDrawRodData: BackgroundBarChartRodData(
+                              show: true,
+                              toY: 100,
+                              color: Theme.of(context).dividerColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ],
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  double _calculateMaxY(List<ModelTabungan> data) {
-    if (data.isEmpty) return 1000;
-    double maxVal = 0;
-    for (var item in data) {
-      if (item.targetAmount > maxVal) maxVal = item.targetAmount;
-    }
-    return maxVal * 1.1; // Tambah buffer 10%
+            ),
+          ],
+        ),
+      );
+    });
   }
 }

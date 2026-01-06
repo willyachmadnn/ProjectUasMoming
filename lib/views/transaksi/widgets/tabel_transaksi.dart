@@ -1,3 +1,4 @@
+import 'package:financial/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -64,20 +65,28 @@ class TabelTransaksi extends StatelessWidget {
                   children: [
                     Text(
                       dateFormat.format(tx.date),
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context).hintColor,
+                      ),
                     ),
                     Container(
                       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: (tx.isExpense ? Colors.red : Colors.green)
-                            .withValues(alpha: 0.1),
+                        color:
+                            (tx.isExpense
+                                    ? Theme.of(context).colorScheme.error
+                                    : AppTheme.success)
+                                .withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
                         tx.category,
                         style: TextStyle(
                           fontSize: 12,
-                          color: tx.isExpense ? Colors.red : Colors.green,
+                          color: tx.isExpense
+                              ? Theme.of(context).colorScheme.error
+                              : AppTheme.success,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -98,7 +107,7 @@ class TabelTransaksi extends StatelessWidget {
                     Text(
                       '${tx.isExpense ? '-' : '+'}${currencyFormat.format(tx.amount)}',
                       style: TextStyle(
-                        color: tx.isExpense ? Colors.red : Colors.green,
+                        color: tx.isExpense ? AppTheme.error : AppTheme.success,
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
@@ -116,7 +125,11 @@ class TabelTransaksi extends StatelessWidget {
                           tooltip: 'Edit',
                         ),
                         IconButton(
-                          icon: Icon(Icons.delete, color: Colors.red, size: 20),
+                          icon: Icon(
+                            Icons.delete,
+                            color: Theme.of(context).colorScheme.error,
+                            size: 20,
+                          ),
                           onPressed: () => controller.deleteTransaction(tx.id),
                           tooltip: 'Hapus',
                         ),
@@ -143,7 +156,7 @@ class TabelTransaksi extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Theme.of(context).shadowColor.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: Offset(0, 4),
           ),
@@ -270,13 +283,17 @@ class TabelTransaksi extends StatelessWidget {
                                   ? Icons.arrow_forward
                                   : Icons.arrow_back,
                               size: 16,
-                              color: tx.isExpense ? Colors.red : Colors.green,
+                              color: tx.isExpense
+                                  ? AppTheme.error
+                                  : AppTheme.success,
                             ),
                             SizedBox(width: 4),
                             Text(
                               tx.isExpense ? 'Pengeluaran' : 'Pemasukan',
                               style: TextStyle(
-                                color: tx.isExpense ? Colors.red : Colors.green,
+                                color: tx.isExpense
+                                    ? AppTheme.error
+                                    : AppTheme.success,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -288,7 +305,9 @@ class TabelTransaksi extends StatelessWidget {
                         child: Text(
                           '${tx.isExpense ? '-' : '+'}${currencyFormat.format(tx.amount)}',
                           style: TextStyle(
-                            color: tx.isExpense ? Colors.red : Colors.green,
+                            color: tx.isExpense
+                                ? AppTheme.error
+                                : AppTheme.success,
                             fontWeight: FontWeight.bold,
                           ),
                           textAlign: TextAlign.right,
@@ -334,13 +353,17 @@ class TabelTransaksi extends StatelessWidget {
                                 children: [
                                   Icon(
                                     Icons.delete,
-                                    color: Colors.red,
+                                    color: Theme.of(context).colorScheme.error,
                                     size: 20,
                                   ),
                                   SizedBox(width: 8),
                                   Text(
                                     'Hapus',
-                                    style: TextStyle(color: Colors.red),
+                                    style: TextStyle(
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.error,
+                                    ),
                                   ),
                                 ],
                               ),

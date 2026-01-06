@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'dart:async';
+import '../../theme/app_theme.dart';
 
 class SnackbarKustom {
   static OverlayEntry? _activeEntry;
@@ -46,7 +47,7 @@ class SnackbarKustom {
     _show(
       title: title,
       message: message,
-      color: const Color(0xFF22C55E),
+      color: AppTheme.success,
       icon: Icons.check_circle,
       durationSeconds: 3,
     );
@@ -56,7 +57,7 @@ class SnackbarKustom {
     _show(
       title: title,
       message: message,
-      color: const Color(0xFFEF4444),
+      color: AppTheme.error,
       icon: Icons.error_outline,
       durationSeconds: 4,
     );
@@ -66,7 +67,7 @@ class SnackbarKustom {
     _show(
       title: title,
       message: message,
-      color: const Color(0xFF3B8266),
+      color: AppTheme.info,
       icon: Icons.info_outline,
       durationSeconds: 3,
     );
@@ -76,7 +77,7 @@ class SnackbarKustom {
     _show(
       title: title,
       message: message,
-      color: const Color(0xFFE59E0B),
+      color: AppTheme.warning,
       icon: Icons.warning_amber_rounded,
       durationSeconds: 3,
     );
@@ -104,7 +105,8 @@ class _FadeSnackbarWidget extends StatefulWidget {
   State<_FadeSnackbarWidget> createState() => _FadeSnackbarWidgetState();
 }
 
-class _FadeSnackbarWidgetState extends State<_FadeSnackbarWidget> with SingleTickerProviderStateMixin {
+class _FadeSnackbarWidgetState extends State<_FadeSnackbarWidget>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _opacityAnim;
   Timer? _dismissTimer;
@@ -172,7 +174,11 @@ class _FadeSnackbarWidgetState extends State<_FadeSnackbarWidget> with SingleTic
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(widget.iconData, color: Colors.white, size: 24),
+                Icon(
+                  widget.iconData,
+                  color: Theme.of(context).colorScheme.onPrimary,
+                  size: 24,
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -182,18 +188,17 @@ class _FadeSnackbarWidgetState extends State<_FadeSnackbarWidget> with SingleTic
                       if (widget.title.isNotEmpty)
                         Text(
                           widget.title,
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onPrimary,
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
                           ),
                         ),
-                      if (widget.title.isNotEmpty)
-                        const SizedBox(height: 2),
+                      if (widget.title.isNotEmpty) const SizedBox(height: 2),
                       Text(
                         widget.message,
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: AppTheme.light.colorScheme.onPrimary,
                           fontSize: 12,
                         ),
                         maxLines: 2,

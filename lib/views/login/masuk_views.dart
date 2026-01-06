@@ -61,7 +61,7 @@ class TampilanMasuk extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Theme.of(context).shadowColor.withOpacity(0.05),
+            color: Theme.of(context).shadowColor.withValues(alpha: 0.05),
             offset: const Offset(0, 10),
             blurRadius: 30,
           ),
@@ -97,7 +97,10 @@ class TampilanMasuk extends StatelessWidget {
                 Text(
                   'Masa Depan Cerah Dimulai dari Catatan Kecil',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                  style: TextStyle(
+                    color: Theme.of(context).textTheme.bodySmall?.color,
+                    fontSize: 12,
+                  ),
                 ),
               ],
             ),
@@ -162,10 +165,10 @@ class TampilanMasuk extends StatelessWidget {
                   minimumSize: Size.zero,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
-                child: const Text(
+                child: Text(
                   'Lupa Password?',
                   style: TextStyle(
-                    color: Color(0xFF6C63FF),
+                    color: Theme.of(context).primaryColor,
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                   ),
@@ -206,8 +209,10 @@ class TampilanMasuk extends StatelessWidget {
                     height: 48,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF34495E),
-                        foregroundColor: Colors.white,
+                        backgroundColor: Theme.of(context).primaryColor,
+                        foregroundColor: Theme.of(
+                          context,
+                        ).colorScheme.onPrimary,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -238,7 +243,7 @@ class TampilanMasuk extends StatelessWidget {
                 child: Text(
                   'ATAU',
                   style: TextStyle(
-                    color: Colors.grey[400],
+                    color: Theme.of(context).disabledColor,
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
                   ),
@@ -255,7 +260,7 @@ class TampilanMasuk extends StatelessWidget {
             height: 48,
             child: OutlinedButton.icon(
               style: OutlinedButton.styleFrom(
-                side: BorderSide(color: Colors.grey.shade300),
+                side: BorderSide(color: Theme.of(context).dividerColor),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -266,10 +271,10 @@ class TampilanMasuk extends StatelessWidget {
                 errorBuilder: (context, error, stackTrace) =>
                     const Icon(Icons.login),
               ),
-              label: const Text(
+              label: Text(
                 'Masuk dengan Google',
                 style: TextStyle(
-                  color: Color(0xFF2C3E50),
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
                   fontWeight: FontWeight.bold,
                   fontSize: 13,
                 ),
@@ -281,6 +286,7 @@ class TampilanMasuk extends StatelessWidget {
       ),
     );
   }
+
   Widget _buildFloatingLabelTextField(
     BuildContext context, {
     required String label,
@@ -292,16 +298,16 @@ class TampilanMasuk extends StatelessWidget {
     return TextField(
       controller: controller,
       obscureText: isObscure,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 14,
-        color: Color(0xFF2C3E50),
+        color: Theme.of(context).textTheme.bodyLarge?.color,
         fontWeight: FontWeight.w500,
       ),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(color: Colors.grey[600], fontSize: 14),
-        floatingLabelStyle: const TextStyle(
-          color: Color(0xFF34495E),
+        labelStyle: TextStyle(color: Theme.of(context).hintColor, fontSize: 14),
+        floatingLabelStyle: TextStyle(
+          color: Theme.of(context).primaryColor,
           fontWeight: FontWeight.bold,
         ),
 

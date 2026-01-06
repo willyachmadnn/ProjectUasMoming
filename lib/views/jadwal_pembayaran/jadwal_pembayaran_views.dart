@@ -1,3 +1,4 @@
+import 'package:financial/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -13,8 +14,14 @@ class TampilanJadwalPembayaran extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(KontrolerJadwalPembayaran());
-    final currencyFormat = NumberFormat.currency(locale: 'id_ID', symbol: 'Rp ', decimalDigits: 0);
-    final dateFormat = DateFormat('dd/MM/yyyy');
+    final currencyFormat = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
+
+    String safeDate(DateTime date) =>
+        DateFormat('d MMMM yyyy', 'id_ID').format(date);
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -25,7 +32,7 @@ class TampilanJadwalPembayaran extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildFilterBar(context, controller, dateFormat),
+            _buildFilterBar(context, controller),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -34,14 +41,29 @@ class TampilanJadwalPembayaran extends StatelessWidget {
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 ElevatedButton.icon(
-                  onPressed: () => Get.dialog(DialogTambahJadwal(controller: controller)),
+                  onPressed: () =>
+                      Get.dialog(DialogTambahJadwal(controller: controller)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Theme.of(context).primaryColor,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                   ),
-                  icon: const Icon(Icons.add, color: Colors.white, size: 18),
-                  label: const Text("Jadwal", style: TextStyle(color: Colors.white)),
+                  icon: Icon(
+                    Icons.add,
+                    color: Theme.of(context).colorScheme.onPrimary,
+                    size: 18,
+                  ),
+                  label: Text(
+                    "Jadwal",
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onPrimary,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -61,24 +83,35 @@ class TampilanJadwalPembayaran extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Theme.of(
+                        context,
+                      ).shadowColor.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
                   ],
                 ),
                 child: Column(
-                  children: controller.filteredSchedules.asMap().entries.map((entry) {
+                  children: controller.filteredSchedules.asMap().entries.map((
+                    entry,
+                  ) {
                     int index = entry.key;
                     var item = entry.value;
-                    bool isLast = index == controller.filteredSchedules.length - 1;
+                    bool isLast =
+                        index == controller.filteredSchedules.length - 1;
 
                     return Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         border: isLast
                             ? null
-                            : Border(bottom: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.5))),
+                            : Border(
+                                bottom: BorderSide(
+                                  color: Theme.of(
+                                    context,
+                                  ).dividerColor.withValues(alpha: 0.5),
+                                ),
+                              ),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -87,20 +120,34 @@ class TampilanJadwalPembayaran extends StatelessWidget {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                DateFormat('dd MMMM yyyy', 'id_ID').format(item.dueDate),
-                                style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                safeDate(item.dueDate),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Theme.of(context).hintColor,
+                                ),
                               ),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: (item.isPaid ? Colors.green : Colors.red).withOpacity(0.1),
+                                  color:
+                                      (item.isPaid
+                                              ? AppTheme.success
+                                              : Theme.of(
+                                                  context,
+                                                ).colorScheme.error)
+                                          .withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
                                   item.isPaid ? 'Lunas' : 'Tertunda',
                                   style: TextStyle(
                                     fontSize: 10,
-                                    color: item.isPaid ? Colors.green : Colors.red,
+                                    color: item.isPaid
+                                        ? AppTheme.success
+                                        : Theme.of(context).colorScheme.error,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -110,7 +157,10 @@ class TampilanJadwalPembayaran extends StatelessWidget {
                           const SizedBox(height: 10),
                           Text(
                             item.name,
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -121,7 +171,9 @@ class TampilanJadwalPembayaran extends StatelessWidget {
                               Text(
                                 currencyFormat.format(item.amount),
                                 style: TextStyle(
-                                  color: item.isPaid ? Colors.green : Colors.orange,
+                                  color: item.isPaid
+                                      ? AppTheme.success
+                                      : AppTheme.warning,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
                                 ),
@@ -130,18 +182,45 @@ class TampilanJadwalPembayaran extends StatelessWidget {
                                 children: [
                                   if (!item.isPaid)
                                     IconButton(
-                                      icon: const Icon(Icons.check_circle_outline, color: Colors.blue, size: 20),
-                                      onPressed: () => _konfirmasiBayar(context, controller, item),
+                                      icon: const Icon(
+                                        Icons.check_circle_outline,
+                                        color: AppTheme.info,
+                                        size: 20,
+                                      ),
+                                      onPressed: () => _konfirmasiBayar(
+                                        context,
+                                        controller,
+                                        item,
+                                      ),
                                       tooltip: 'Bayar',
                                     ),
                                   IconButton(
-                                    icon: const Icon(Icons.edit, size: 20, color: Colors.grey),
-                                    onPressed: () => Get.dialog(DialogTambahJadwal(controller: controller, schedule: item)),
+                                    icon: Icon(
+                                      Icons.edit,
+                                      size: 20,
+                                      color: Theme.of(context).disabledColor,
+                                    ),
+                                    onPressed: () => Get.dialog(
+                                      DialogTambahJadwal(
+                                        controller: controller,
+                                        schedule: item,
+                                      ),
+                                    ),
                                     tooltip: 'Edit',
                                   ),
                                   IconButton(
-                                    icon: const Icon(Icons.delete, color: Colors.red, size: 20),
-                                    onPressed: () => _konfirmasiHapus(context, controller, item.id),
+                                    icon: Icon(
+                                      Icons.delete,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.error,
+                                      size: 20,
+                                    ),
+                                    onPressed: () => _konfirmasiHapus(
+                                      context,
+                                      controller,
+                                      item.id,
+                                    ),
                                     tooltip: 'Hapus',
                                   ),
                                 ],
@@ -161,7 +240,10 @@ class TampilanJadwalPembayaran extends StatelessWidget {
     );
   }
 
-  Widget _buildFilterBar(BuildContext context, KontrolerJadwalPembayaran controller, DateFormat dateFormat) {
+  Widget _buildFilterBar(
+    BuildContext context,
+    KontrolerJadwalPembayaran controller,
+  ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       height: 50,
@@ -188,16 +270,28 @@ class TampilanJadwalPembayaran extends StatelessWidget {
               ),
               const SizedBox(width: 10),
               GestureDetector(
-                onTap: () => controller.toggleSearch(),
+                onTap: () {
+                  controller.searchQuery.value = '';
+                  controller.isSearchOpen.value = false;
+                },
                 child: Container(
                   width: 50,
                   height: 50,
                   decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.1),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.error.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.red.withOpacity(0.3)),
+                    border: Border.all(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.error.withValues(alpha: 0.3),
+                    ),
                   ),
-                  child: const Icon(Icons.close, color: Colors.red),
+                  child: Icon(
+                    Icons.close,
+                    color: Theme.of(context).colorScheme.error,
+                  ),
                 ),
               ),
             ],
@@ -207,16 +301,18 @@ class TampilanJadwalPembayaran extends StatelessWidget {
         return Row(
           children: [
             GestureDetector(
-              onTap: () => controller.toggleSearch(),
+              onTap: () => controller.isSearchOpen.value = true,
               child: Container(
                 width: 50,
                 height: 50,
                 decoration: BoxDecoration(
                   color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Theme.of(context).dividerColor),
                 ),
-                child: Icon(Icons.search, color: Theme.of(context).primaryColor),
+                child: Icon(
+                  Icons.search,
+                  color: Theme.of(context).primaryColor,
+                ),
               ),
             ),
             const SizedBox(width: 10),
@@ -227,9 +323,10 @@ class TampilanJadwalPembayaran extends StatelessWidget {
                     context: context,
                     firstDate: DateTime(2020),
                     lastDate: DateTime(2030),
-                    initialDateRange: controller.selectedDateRange.value,
                   );
-                  if (picked != null) controller.selectedDateRange.value = picked;
+                  if (picked != null) {
+                    controller.selectedDateRange.value = picked;
+                  }
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -241,11 +338,18 @@ class TampilanJadwalPembayaran extends StatelessWidget {
                   alignment: Alignment.centerLeft,
                   child: Row(
                     children: [
-                      const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
+                      const Icon(
+                        Icons.calendar_today,
+                        size: 16,
+                        color: AppTheme.info,
+                      ),
                       const SizedBox(width: 8),
                       Text(
-                        "${dateFormat.format(controller.selectedDateRange.value.start)} - ${dateFormat.format(controller.selectedDateRange.value.end)}",
-                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+                        "${DateFormat('d MMMM yyyy', 'id_ID').format(controller.selectedDateRange.value.start)} - ${DateFormat('dd/MM/yyyy').format(controller.selectedDateRange.value.end)}",
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ],
                   ),
@@ -258,13 +362,17 @@ class TampilanJadwalPembayaran extends StatelessWidget {
     );
   }
 
-  void _konfirmasiBayar(BuildContext context, KontrolerJadwalPembayaran controller, ModelJadwalPembayaran item) {
+  void _konfirmasiBayar(
+    BuildContext context,
+    KontrolerJadwalPembayaran controller,
+    ModelJadwalPembayaran item,
+  ) {
     Get.defaultDialog(
       title: "Konfirmasi",
       middleText: "Bayar tagihan '${item.name}' sekarang?",
       textConfirm: "Ya, Bayar",
       textCancel: "Batal",
-      confirmTextColor: Colors.white,
+      confirmTextColor: Theme.of(context).colorScheme.onPrimary,
       buttonColor: Theme.of(context).primaryColor,
       radius: 12,
       onConfirm: () {
@@ -274,14 +382,18 @@ class TampilanJadwalPembayaran extends StatelessWidget {
     );
   }
 
-  void _konfirmasiHapus(BuildContext context, KontrolerJadwalPembayaran controller, String id) {
+  void _konfirmasiHapus(
+    BuildContext context,
+    KontrolerJadwalPembayaran controller,
+    String id,
+  ) {
     Get.defaultDialog(
       title: "Hapus",
       middleText: "Yakin ingin menghapus jadwal ini?",
       textConfirm: "Hapus",
       textCancel: "Batal",
-      confirmTextColor: Colors.white,
-      buttonColor: Colors.red,
+      confirmTextColor: Theme.of(context).colorScheme.onError,
+      buttonColor: Theme.of(context).colorScheme.error,
       radius: 12,
       onConfirm: () {
         controller.deleteSchedule(id);

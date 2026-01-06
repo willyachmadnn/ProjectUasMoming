@@ -14,9 +14,14 @@ class TampilanUbahPassword extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFE0E5EC),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text("Reset Password", style: TextStyle(color: Color(0xFF2C3E50))),
+        title: Text(
+          "Reset Password",
+          style: TextStyle(
+            color: Theme.of(context).textTheme.titleLarge?.color,
+          ),
+        ),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -31,97 +36,126 @@ class TampilanUbahPassword extends StatelessWidget {
             ),
             padding: const EdgeInsets.all(40),
             decoration: BoxDecoration(
-              color: const Color(0xFFE0E5EC),
+              color: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.white.withValues(alpha: 0.8),
-                  offset: const Offset(-6, -6),
-                  blurRadius: 16,
-                ),
-                BoxShadow(
-                  color: const Color(0xFFA3B1C6).withValues(alpha: 0.5),
-                  offset: const Offset(6, 6),
-                  blurRadius: 16,
+                  color: Theme.of(context).shadowColor.withValues(alpha: 0.05),
+                  offset: const Offset(0, 10),
+                  blurRadius: 30,
                 ),
               ],
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
+                Text(
                   'Password Baru',
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF2C3E50),
+                    color: Theme.of(context).textTheme.titleLarge?.color,
                   ),
                 ),
                 const SizedBox(height: 12),
                 Text(
                   'Silakan buat password baru untuk akun Anda.',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                  style: TextStyle(
+                    color: Theme.of(context).hintColor,
+                    fontSize: 14,
+                  ),
                 ),
                 const SizedBox(height: 30),
 
-                Obx(() => _buildFloatingLabelTextField(
-                  context,
-                  label: 'Password Baru',
-                  controller: newPasswordCtrl,
-                  isPassword: true,
-                  isObscure: !(authCtrl.isRegisterPasswordVisible.value),
-                  onToggleVisibility: authCtrl.toggleRegisterPasswordVisibility,
-                )),
+                Obx(
+                  () => _buildFloatingLabelTextField(
+                    context,
+                    label: 'Password Baru',
+                    controller: newPasswordCtrl,
+                    isPassword: true,
+                    isObscure: !(authCtrl.isRegisterPasswordVisible.value),
+                    onToggleVisibility:
+                        authCtrl.toggleRegisterPasswordVisibility,
+                  ),
+                ),
 
                 const SizedBox(height: 20),
 
-                Obx(() => _buildFloatingLabelTextField(
-                  context,
-                  label: 'Konfirmasi Password',
-                  controller: confirmPasswordCtrl,
-                  isPassword: true,
-                  isObscure: !(authCtrl.isRegisterPasswordVisible.value),
-                  onToggleVisibility: authCtrl.toggleRegisterPasswordVisibility,
-                )),
+                Obx(
+                  () => _buildFloatingLabelTextField(
+                    context,
+                    label: 'Konfirmasi Password',
+                    controller: confirmPasswordCtrl,
+                    isPassword: true,
+                    isObscure: !(authCtrl.isRegisterPasswordVisible.value),
+                    onToggleVisibility:
+                        authCtrl.toggleRegisterPasswordVisibility,
+                  ),
+                ),
 
                 const SizedBox(height: 32),
 
-                Obx(() => authCtrl.isLoading.value
-                    ? const CircularProgressIndicator()
-                    : SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF34495E),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 5,
-                    ),
-                    onPressed: () {
-                      if (newPasswordCtrl.text.isEmpty) {
-                        Get.snackbar("Error", "Password tidak boleh kosong", backgroundColor: Colors.red, colorText: Colors.white);
-                        return;
-                      }
-                      if (newPasswordCtrl.text != confirmPasswordCtrl.text) {
-                        Get.snackbar("Error", "Password tidak sama", backgroundColor: Colors.red, colorText: Colors.white);
-                        return;
-                      }
-                      authCtrl.confirmPasswordReset(oobCode, newPasswordCtrl.text);
-                    },
-                    child: const Text(
-                      'Simpan Password',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1,
-                      ),
-                    ),
-                  ),
-                ),
+                Obx(
+                  () => authCtrl.isLoading.value
+                      ? const CircularProgressIndicator()
+                      : SizedBox(
+                          width: double.infinity,
+                          height: 50,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Theme.of(context).primaryColor,
+                              foregroundColor: Theme.of(
+                                context,
+                              ).colorScheme.onPrimary,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 5,
+                            ),
+                            onPressed: () {
+                              if (newPasswordCtrl.text.isEmpty) {
+                                Get.snackbar(
+                                  "Error",
+                                  "Password tidak boleh kosong",
+                                  backgroundColor: Theme.of(
+                                    context,
+                                  ).colorScheme.error,
+                                  colorText: Theme.of(
+                                    context,
+                                  ).colorScheme.onError,
+                                );
+                                return;
+                              }
+                              if (newPasswordCtrl.text !=
+                                  confirmPasswordCtrl.text) {
+                                Get.snackbar(
+                                  "Error",
+                                  "Password tidak sama",
+                                  backgroundColor: Theme.of(
+                                    context,
+                                  ).colorScheme.error,
+                                  colorText: Theme.of(
+                                    context,
+                                  ).colorScheme.onError,
+                                );
+                                return;
+                              }
+                              authCtrl.confirmPasswordReset(
+                                oobCode,
+                                newPasswordCtrl.text,
+                              );
+                            },
+                            child: const Text(
+                              'Simpan Password',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1,
+                              ),
+                            ),
+                          ),
+                        ),
                 ),
               ],
             ),
@@ -132,46 +166,55 @@ class TampilanUbahPassword extends StatelessWidget {
   }
 
   Widget _buildFloatingLabelTextField(
-      BuildContext context, {
-        required String label,
-        required TextEditingController controller,
-        bool isPassword = false,
-        bool isObscure = false,
-        VoidCallback? onToggleVisibility,
-      }) {
+    BuildContext context, {
+    required String label,
+    required TextEditingController controller,
+    bool isPassword = false,
+    bool isObscure = false,
+    VoidCallback? onToggleVisibility,
+  }) {
     return TextField(
       controller: controller,
       obscureText: isObscure,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 14,
-        color: Color(0xFF2C3E50),
+        color: Theme.of(context).textTheme.bodyLarge?.color,
         fontWeight: FontWeight.w500,
       ),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(color: Colors.grey[600], fontSize: 14),
-        floatingLabelStyle: const TextStyle(color: Color(0xFF34495E), fontWeight: FontWeight.bold),
+        labelStyle: TextStyle(color: Theme.of(context).hintColor, fontSize: 14),
+        floatingLabelStyle: TextStyle(
+          color: Theme.of(context).primaryColor,
+          fontWeight: FontWeight.bold,
+        ),
         filled: true,
-        fillColor: Colors.white,
+        fillColor: Theme.of(context).inputDecorationTheme.fillColor,
         suffixIcon: isPassword
             ? IconButton(
-          iconSize: 20,
-          icon: Icon(
-              isObscure ? Icons.visibility_off : Icons.visibility,
-              color: Colors.grey
-          ),
-          onPressed: onToggleVisibility,
-        )
+                iconSize: 20,
+                icon: Icon(
+                  isObscure ? Icons.visibility_off : Icons.visibility,
+                  color: Theme.of(context).iconTheme.color,
+                ),
+                onPressed: onToggleVisibility,
+              )
             : null,
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFBDBDBD)),
+          borderSide: BorderSide(color: Theme.of(context).dividerColor),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF34495E), width: 2),
+          borderSide: BorderSide(
+            color: Theme.of(context).primaryColor,
+            width: 2,
+          ),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
       ),
     );
   }

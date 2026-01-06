@@ -81,7 +81,8 @@ class _DialogTambahTransaksiState extends State<DialogTambahTransaksi> {
 
     final tx = ModelTransaksi(
       id: widget.transaction?.id ?? '',
-      uid: widget.transaction?.uid ??
+      uid:
+          widget.transaction?.uid ??
           FirebaseAuth.instance.currentUser?.uid ??
           '',
       description: _descriptionController.text,
@@ -109,7 +110,7 @@ class _DialogTambahTransaksiState extends State<DialogTambahTransaksi> {
       middleText: "Apakah Anda yakin ingin menyimpan perubahan data ini?",
       textConfirm: "Ya, Simpan",
       textCancel: "Batal",
-      confirmTextColor: Colors.white,
+      confirmTextColor: Theme.of(context).colorScheme.onPrimary,
       buttonColor: Theme.of(context).primaryColor,
       onConfirm: _processSave,
     );
@@ -142,15 +143,22 @@ class _DialogTambahTransaksiState extends State<DialogTambahTransaksi> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                const Text('Tipe:', style: TextStyle(fontWeight: FontWeight.bold)),
+                const Text(
+                  'Tipe:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 8),
                 Row(
                   children: [
                     Expanded(
                       child: ChoiceChip(
                         label: const SizedBox(
-                            width: double.infinity,
-                            child: Text('Pengeluaran', textAlign: TextAlign.center)),
+                          width: double.infinity,
+                          child: Text(
+                            'Pengeluaran',
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
                         selected: _isExpense,
                         onSelected: (val) {
                           setState(() {
@@ -164,8 +172,9 @@ class _DialogTambahTransaksiState extends State<DialogTambahTransaksi> {
                     Expanded(
                       child: ChoiceChip(
                         label: const SizedBox(
-                            width: double.infinity,
-                            child: Text('Pemasukan', textAlign: TextAlign.center)),
+                          width: double.infinity,
+                          child: Text('Pemasukan', textAlign: TextAlign.center),
+                        ),
                         selected: !_isExpense,
                         onSelected: (val) {
                           setState(() {
@@ -182,20 +191,26 @@ class _DialogTambahTransaksiState extends State<DialogTambahTransaksi> {
                   children: [
                     Expanded(
                       child: Obx(() {
-                        if (!_filteredCategories
-                            .any((c) => c.name == _selectedCategory)) {
+                        if (!_filteredCategories.any(
+                          (c) => c.name == _selectedCategory,
+                        )) {
                           _selectedCategory = _filteredCategories.isNotEmpty
                               ? _filteredCategories.first.name
                               : 'Other';
                         }
                         return DropdownButtonFormField<String>(
-                          value: _selectedCategory,
+                          initialValue: _selectedCategory,
                           decoration: InputDecoration(
-                              labelText: 'Kategori',
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))), // PERBAIKAN: Rounded border
+                            labelText: 'Kategori',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ), // PERBAIKAN: Rounded border
                           items: _filteredCategories.map((c) {
                             return DropdownMenuItem(
-                                value: c.name, child: Text(c.name));
+                              value: c.name,
+                              child: Text(c.name),
+                            );
                           }).toList(),
                           onChanged: (val) =>
                               setState(() => _selectedCategory = val!),
@@ -222,10 +237,15 @@ class _DialogTambahTransaksiState extends State<DialogTambahTransaksi> {
                   },
                   child: InputDecorator(
                     decoration: InputDecoration(
-                        labelText: 'Tanggal',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                        prefixIcon: const Icon(Icons.calendar_today)),
-                    child: Text(DateFormat('d MMMM yyyy', 'id').format(_selectedDate)),
+                      labelText: 'Tanggal',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      prefixIcon: const Icon(Icons.calendar_today),
+                    ),
+                    child: Text(
+                      DateFormat('d MMMM yyyy', 'id').format(_selectedDate),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -234,22 +254,28 @@ class _DialogTambahTransaksiState extends State<DialogTambahTransaksi> {
                   decoration: InputDecoration(
                     labelText: 'Jumlah',
                     prefixText: 'Rp ',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                   keyboardType: TextInputType.number,
                   inputFormatters: [
                     FilteringTextInputFormatter.digitsOnly,
                     CurrencyInputFormatter(),
                   ],
-                  validator: (value) =>
-                  (value == null || value.isEmpty) ? 'Jumlah harus diisi' : null,
+                  validator: (value) => (value == null || value.isEmpty)
+                      ? 'Jumlah harus diisi'
+                      : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _descriptionController,
                   decoration: InputDecoration(
-                      labelText: 'Keterangan',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
+                    labelText: 'Keterangan',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
                   maxLines: 3,
                 ),
                 const SizedBox(height: 24),
@@ -258,7 +284,9 @@ class _DialogTambahTransaksiState extends State<DialogTambahTransaksi> {
                   children: [
                     TextButton(
                       style: TextButton.styleFrom(
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                       onPressed: () => Get.back(),
                       child: const Text("Batal"),
@@ -267,8 +295,12 @@ class _DialogTambahTransaksiState extends State<DialogTambahTransaksi> {
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Theme.of(context).primaryColor,
-                        foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        foregroundColor: Theme.of(
+                          context,
+                        ).colorScheme.onPrimary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
@@ -279,7 +311,9 @@ class _DialogTambahTransaksiState extends State<DialogTambahTransaksi> {
                           }
                         }
                       },
-                      child: Text(widget.transaction == null ? 'Simpan' : 'Update'),
+                      child: Text(
+                        widget.transaction == null ? 'Simpan' : 'Update',
+                      ),
                     ),
                   ],
                 ),

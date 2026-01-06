@@ -80,10 +80,13 @@ class LayananBeranda {
   }
 
   Stream<List<ModelTabungan>> getSavingsGoals() {
+    if (_uid.isEmpty) return Stream.value([]);
+    
     return _db
-        .collection('savings_goals')
-        .where('uid', isEqualTo: _uid)
-        .limit(3)
+        .collection('users')
+        .doc(_uid)
+        .collection('tabungan')
+        .orderBy('createdAt', descending: true)
         .snapshots()
         .map(
           (snapshot) => snapshot.docs

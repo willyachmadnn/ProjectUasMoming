@@ -3,12 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../../../controllers/beranda_controllers.dart';
+import '../../../theme/app_theme.dart';
 
 class GrafikDonat extends StatelessWidget {
-  final Map<String, double> data;
-  final double total;
-
-  const GrafikDonat({super.key, required this.data, required this.total});
+  // Constructor jadi kosong (const)
+  const GrafikDonat({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -18,15 +17,13 @@ class GrafikDonat extends StatelessWidget {
       symbol: 'Rp ',
       decimalDigits: 0,
     );
-    var sortedEntries = data.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-    var top5Entries = sortedEntries.take(5).toList();
+
     List<Color> colors = [
-      Colors.blue,
-      Colors.amber,
-      Colors.green,
-      Colors.red,
-      Colors.purple,
+      Theme.of(context).primaryColor,
+      AppTheme.warning,
+      AppTheme.success,
+      Theme.of(context).colorScheme.error,
+      AppTheme.chartPurple,
     ];
 
     return Container(
@@ -44,11 +41,21 @@ class GrafikDonat extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           Expanded(
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Obx(() {
-                  return PieChart(
+            // OBX DISINI MENANGANI DATA & SENTUHAN
+            child: Obx(() {
+              // 1. Ambil data REAKTIF di dalam Obx
+              final data = controller.categoryStats; // RxMap
+              final touchedIndex = controller.touchedIndexDonut.value; // RxInt
+
+              // 2. Olah data
+              var sortedEntries = data.entries.toList()
+                ..sort((a, b) => b.value.compareTo(a.value));
+              var top5Entries = sortedEntries.take(5).toList();
+
+              return Stack(
+                alignment: Alignment.center,
+                children: [
+                  PieChart(
                     PieChartData(
                       pieTouchData: PieTouchData(
                         enabled: true,
@@ -60,7 +67,6 @@ class GrafikDonat extends StatelessWidget {
                             controller.touchedIndexDonut.value = -1;
                             return;
                           }
-
                           if (event is FlTapDownEvent ||
                               event is FlPanDownEvent ||
                               event is FlPanUpdateEvent) {
@@ -78,8 +84,7 @@ class GrafikDonat extends StatelessWidget {
                       sectionsSpace: 2,
                       centerSpaceRadius: 30,
                       sections: List.generate(top5Entries.length, (i) {
-                        final isTouched =
-                            i == controller.touchedIndexDonut.value;
+                        final isTouched = i == touchedIndex;
                         final radius = isTouched ? 25.0 : 18.0;
                         return PieChartSectionData(
                           color: colors[i % colors.length],
@@ -89,56 +94,59 @@ class GrafikDonat extends StatelessWidget {
                         );
                       }),
                     ),
-                  );
-                }),
-                Obx(() {
-                  final index = controller.touchedIndexDonut.value;
-                  if (index != -1 && index < top5Entries.length) {
-                    return Container(
+                  ),
+                  if (touchedIndex != -1 && touchedIndex < top5Entries.length)
+                    Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 8,
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.blueGrey.shade900,
+                        color: Theme.of(context).cardColor,
                         borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: Theme.of(context).dividerColor,
+                        ),
                       ),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            top5Entries[index].key,
-                            style: const TextStyle(
+                            top5Entries[touchedIndex].key,
+                            style: TextStyle(
                               fontSize: 10,
-                              color: Colors.white70,
+                              color: Theme.of(
+                                context,
+                              ).textTheme.bodySmall?.color,
                             ),
                           ),
                           const SizedBox(height: 2),
                           FittedBox(
                             child: Text(
                               fullCurrencyFormat.format(
-                                top5Entries[index].value,
+                                top5Entries[touchedIndex].value,
                               ),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                                color: Theme.of(
+                                  context,
+                                ).textTheme.bodyLarge?.color,
                               ),
                             ),
                           ),
                         ],
                       ),
-                    );
-                  } else {
-                    return Icon(
+                    )
+                  else
+                    Icon(
                       Icons.touch_app,
                       color: Theme.of(context).hintColor.withValues(alpha: 0.3),
                       size: 24,
-                    );
-                  }
-                }),
-              ],
-            ),
+                    ),
+                ],
+              );
+            }),
           ),
           const SizedBox(height: 18),
           Align(
@@ -153,12 +161,14 @@ class GrafikDonat extends StatelessWidget {
                     color: Theme.of(context).hintColor,
                   ),
                 ),
-                Text(
-                  fullCurrencyFormat.format(total),
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                Obx(
+                  () => Text(
+                    fullCurrencyFormat.format(controller.totalExpense.value),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
+                    ),
                   ),
                 ),
               ],

@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-// MENGGUNAKAN ABSOLUTE IMPORT AGAR AMAN DARI ERROR PATH
 import 'package:financial/controllers/transaksi_controllers.dart';
 import 'package:financial/models/kategori_models.dart';
+import '../../../../theme/app_theme.dart';
 
 class AturKategoriViews extends StatelessWidget {
   const AturKategoriViews({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Inject Controller
     final KontrolerTransaksi controller = Get.find<KontrolerTransaksi>();
 
     return DefaultTabController(
@@ -43,7 +42,9 @@ class AturKategoriViews extends StatelessWidget {
                 border: Border.all(color: Theme.of(context).dividerColor),
                 boxShadow: [
                   BoxShadow(
-                    color: Theme.of(context).shadowColor.withOpacity(0.05),
+                    color: Theme.of(
+                      context,
+                    ).shadowColor.withValues(alpha: 0.05),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -56,7 +57,7 @@ class AturKategoriViews extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12),
                   color: Theme.of(context).primaryColor,
                 ),
-                labelColor: Colors.white,
+                labelColor: Theme.of(context).colorScheme.onPrimary,
                 unselectedLabelColor: Theme.of(
                   context,
                 ).textTheme.bodyMedium?.color,
@@ -79,8 +80,11 @@ class AturKategoriViews extends StatelessWidget {
           ],
         ),
         floatingActionButton: FloatingActionButton(
-          backgroundColor: const Color(0xFF2563EB),
-          child: const Icon(Icons.add, color: Colors.white),
+          backgroundColor: Theme.of(context).primaryColor,
+          child: Icon(
+            Icons.add,
+            color: Theme.of(context).colorScheme.onPrimary,
+          ),
           onPressed: () {
             Get.dialog(DialogFormKategori(controller: controller));
           },
@@ -99,7 +103,7 @@ class AturKategoriViews extends StatelessWidget {
         return Center(
           child: Text(
             "Belum ada kategori",
-            style: TextStyle(color: Colors.grey[400]),
+            style: TextStyle(color: Theme.of(Get.context!).hintColor),
           ),
         );
       }
@@ -114,11 +118,11 @@ class AturKategoriViews extends StatelessWidget {
             contentPadding: EdgeInsets.zero,
             leading: CircleAvatar(
               backgroundColor: type == 'expense'
-                  ? Colors.red.withOpacity(0.1)
-                  : Colors.green.withOpacity(0.1),
+                  ? AppTheme.error.withValues(alpha: 0.1)
+                  : AppTheme.success.withValues(alpha: 0.1),
               child: Icon(
                 type == 'expense' ? Icons.outbound : Icons.input,
-                color: type == 'expense' ? Colors.red : Colors.green,
+                color: type == 'expense' ? AppTheme.error : AppTheme.success,
                 size: 20,
               ),
             ),
@@ -130,9 +134,13 @@ class AturKategoriViews extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.edit,
-                    color: Colors.blueGrey,
+                    color:
+                        Theme.of(
+                          context,
+                        ).iconTheme.color?.withValues(alpha: 0.7) ??
+                        Theme.of(context).disabledColor,
                     size: 20,
                   ),
                   onPressed: () {
@@ -142,9 +150,9 @@ class AturKategoriViews extends StatelessWidget {
                   },
                 ),
                 IconButton(
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.delete,
-                    color: Colors.redAccent,
+                    color: Theme.of(context).colorScheme.error,
                     size: 20,
                   ),
                   onPressed: () {
@@ -154,8 +162,8 @@ class AturKategoriViews extends StatelessWidget {
                           "Yakin ingin menghapus kategori '${cat.name}'?",
                       textConfirm: "Ya, Hapus",
                       textCancel: "Batal",
-                      confirmTextColor: Colors.white,
-                      buttonColor: Colors.red,
+                      confirmTextColor: Theme.of(context).colorScheme.onError,
+                      buttonColor: Theme.of(context).colorScheme.error,
                       onConfirm: () {
                         ctrl.deleteCategory(cat.id);
                         Get.back();
@@ -199,117 +207,110 @@ class _DialogFormKategoriState extends State<DialogFormKategori> {
   }
 
   @override
-  void dispose() {
-    _nameController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final isEdit = widget.category != null;
-
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Container(
-        width: context.width > 400 ? 400 : context.width * 0.9,
         padding: const EdgeInsets.all(24),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                isEdit ? 'Edit Kategori' : 'Tambah Kategori',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              TextFormField(
-                controller: _nameController,
-                textCapitalization: TextCapitalization.words,
-                decoration: InputDecoration(
-                  labelText: 'Nama Kategori',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+        child: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.category == null ? 'Tambah Kategori' : 'Edit Kategori',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).textTheme.titleLarge?.color,
                   ),
                 ),
-                validator: (val) =>
-                    val == null || val.isEmpty ? 'Wajib diisi' : null,
-              ),
-              const SizedBox(height: 16),
-
-              DropdownButtonFormField<String>(
-                value: _type,
-                decoration: InputDecoration(
-                  labelText: 'Tipe',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                const SizedBox(height: 20),
+                TextFormField(
+                  controller: _nameController,
+                  decoration: InputDecoration(
+                    labelText: 'Nama Kategori',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
+                  validator: (val) =>
+                      val == null || val.isEmpty ? 'Wajib diisi' : null,
                 ),
-                items: const [
-                  DropdownMenuItem(
-                    value: 'expense',
-                    child: Text('Pengeluaran'),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  value: _type,
+                  decoration: InputDecoration(
+                    labelText: 'Tipe',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
-                  DropdownMenuItem(value: 'income', child: Text('Pemasukan')),
-                ],
-                onChanged: isEdit
-                    ? null
-                    : (val) => setState(() => _type = val!),
-              ),
-
-              const SizedBox(height: 24),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    style: TextButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                  items: const [
+                    DropdownMenuItem(
+                      value: 'expense',
+                      child: Text('Pengeluaran'),
+                    ),
+                    DropdownMenuItem(value: 'income', child: Text('Pemasukan')),
+                  ],
+                  onChanged: (val) {
+                    if (val != null) setState(() => _type = val);
+                  },
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Get.back(),
+                      child: Text(
+                        'Batal',
+                        style: TextStyle(color: Theme.of(context).primaryColor),
                       ),
                     ),
-                    onPressed: () => Get.back(),
-                    child: const Text('Batal'),
-                  ),
-                  const SizedBox(width: 8),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).primaryColor,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).primaryColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
-                    ),
-                    onPressed: () {
-                      if (_formKey.currentState!.validate()) {
-                        if (isEdit) {
-                          final updatedCat = ModelKategori(
-                            id: widget.category!.id,
-                            name: _nameController.text,
-                            type: _type,
-                          );
-                          widget.controller.updateCategory(updatedCat);
-                        } else {
-                          final newCat = ModelKategori(
-                            id: '',
-                            name: _nameController.text,
-                            type: _type,
-                          );
-                          widget.controller.addCategory(newCat);
+                      onPressed: () {
+                        if (_formKey.currentState!.validate()) {
+                          if (widget.category == null) {
+                            widget.controller.addCategory(
+                              ModelKategori(
+                                id: '',
+                                name: _nameController.text,
+                                type: _type,
+                              ),
+                            );
+                          } else {
+                            widget.controller.updateCategory(
+                              ModelKategori(
+                                id: widget.category!.id,
+                                name: _nameController.text,
+                                type: _type,
+                              ),
+                            );
+                          }
+                          Get.back();
                         }
-                        Get.back();
-                      }
-                    },
-                    child: Text(isEdit ? 'Update' : 'Simpan'),
-                  ),
-                ],
-              ),
-            ],
+                      },
+                      child: Text(
+                        'Simpan',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onPrimary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

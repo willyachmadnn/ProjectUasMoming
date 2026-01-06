@@ -79,13 +79,13 @@ class KartuJadwalPembayaran extends StatelessWidget {
                       if (schedule.isPaid) {
                         textColor =
                             Theme.of(context).textTheme.bodyMedium?.color ??
-                            Colors.black;
+                            Theme.of(context).primaryColor;
                       } else if (isOverdue) {
                         textColor = Theme.of(context).colorScheme.error;
                       } else {
                         textColor =
                             Theme.of(context).textTheme.bodyMedium?.color ??
-                            Colors.black;
+                            Theme.of(context).primaryColor;
                       }
 
                       return Padding(

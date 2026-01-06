@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
+import '../../theme/app_theme.dart';
 
 // Import Controller
 import '../../controllers/tabungan_controllers.dart';
@@ -9,248 +11,246 @@ import '../widgets/drawer_kustom.dart';
 import '../widgets/app_bar_kustom.dart';
 import 'tabungan_card.dart';
 import 'tabungan_form.dart';
-import 'isi_tabungan_form.dart';
-import '../../controllers/transaksi_controllers.dart';
-import '../../models/transaksi_models.dart';
+import 'dialog_isi_tabungan.dart';
+import 'dialog_edit_tabungan.dart';
+import 'package:financial/views/dashboard/widgets/grafik_batang_tabungan.dart';
 
-import 'riwayat_tabungan_model.dart';
-
-class TampilanTabungan extends StatefulWidget {
+class TampilanTabungan extends StatelessWidget {
   const TampilanTabungan({super.key});
-
-  @override
-  State<TampilanTabungan> createState() => _TampilanTabunganState();
-}
-
-class _TampilanTabunganState extends State<TampilanTabungan> {
-  final RxList<RiwayatTabungan> riwayatList = <RiwayatTabungan>[].obs;
 
   @override
   Widget build(BuildContext context) {
     final KontrolerTabungan tabunganC = Get.put(KontrolerTabungan());
 
+    final currencyFormat = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
+
     return Scaffold(
       appBar: AppBarKustom(),
       drawer: DrawerKustom(),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Obx(() {
-                if (tabunganC.loading.value) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-
-                if (tabunganC.tabunganList.isEmpty) {
-                  return const Center(child: Text('Belum ada tabungan aktif'));
-                }
-
-                final totalTarget = tabunganC.tabunganList.fold<double>(
-                  0,
-                  (sum, e) => sum + e.targetAmount,
-                );
-
-                final totalCurrent = tabunganC.tabunganList.fold<double>(
-                  0,
-                  (sum, e) => sum + e.currentAmount,
-                );
-
-                double progress = 0;
-                if (totalTarget > 0) {
-                  progress = totalCurrent / totalTarget;
-                  progress = progress.clamp(0.0, 1.0);
-                }
-
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Total Tabungan',
-                      style: TextStyle(fontSize: 16),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          tabunganC.bindTabungan();
+          tabunganC.fetchMonthlyIncrease();
+        },
+        child: ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Theme.of(context).primaryColor,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: Theme.of(
+                      context,
+                    ).primaryColor.withValues(alpha: 0.3),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  const SizedBox(height: 16),
+                  Text(
+                    'Total Tabungan Anda',
+                    style: TextStyle(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onPrimary.withValues(alpha: 0.7),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
                     ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Terkumpul: Rp ${totalCurrent.toInt()}',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
+                  ),
+                  const SizedBox(height: 8),
+                  Obx(
+                    () => Text(
+                      currencyFormat.format(tabunganC.totalTabungan.value),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.onPrimary,
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Obx(() {
+                    final increase = tabunganC.monthlyIncrease.value;
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onPrimary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        '(+${currencyFormat.format(increase)} bulan ini)',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onPrimary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
                         ),
-                        Text(
-                          'Target: Rp ${totalTarget.toInt()}',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Theme.of(context).textTheme.bodySmall?.color,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    LinearProgressIndicator(
-                      value: progress,
-                      backgroundColor: Theme.of(context).dividerColor,
-                      color: Theme.of(context).colorScheme.primary,
-                      minHeight: 8,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    const SizedBox(height: 5),
-                    Text(
-                      "${(progress * 100).toStringAsFixed(1)}%",
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                  ],
-                );
-              }),
+                      ),
+                    );
+                  }),
+                ],
+              ),
             ),
-          ),
 
-          const SizedBox(height: 20),
+            const SizedBox(height: 30),
 
-          const Text(
-            'Daftar Target',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 10),
+            const Text(
+              'Daftar Tabungan Saya',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
 
-          Obx(() {
-            if (tabunganC.loading.value) {
-              return const Center(child: CircularProgressIndicator());
-            }
+            Obx(() {
+              if (tabunganC.loading.value) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-            if (tabunganC.tabunganList.isEmpty) {
-              return Container(
-                padding: const EdgeInsets.all(20),
+              if (tabunganC.tabunganList.isEmpty) {
+                return Container(
+                  padding: const EdgeInsets.all(30),
+                  alignment: Alignment.center,
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.savings_outlined,
+                        size: 60,
+                        color: Theme.of(context).disabledColor,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Belum ada target tabungan',
+                        style: TextStyle(color: Theme.of(context).hintColor),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              return Column(
+                children: tabunganC.tabunganList.map((data) {
+                  return TabunganCard(
+                    data: data,
+                    onTap: () => _showTabunganActionDialog(context, data),
+                  );
+                }).toList(),
+              );
+            }),
+
+            const SizedBox(height: 80),
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => Get.dialog(const DialogTambahTabungan()),
+        backgroundColor: Theme.of(context).primaryColor,
+        child: Icon(Icons.add, color: Theme.of(context).colorScheme.onPrimary),
+      ),
+    );
+  }
+
+  void _showTabunganActionDialog(BuildContext context, var tabungan) {
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 20),
+              decoration: BoxDecoration(
+                color: Theme.of(context).disabledColor.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Text(
+              tabungan.title,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+            ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  border: Border.all(color: Theme.of(context).dividerColor),
+                  color: AppTheme.info.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Center(child: Text('Belum ada target dibuat')),
-              );
-            }
-
-            return Column(
-              children: tabunganC.tabunganList
-                  .map((e) => TabunganCard(data: e))
-                  .toList(),
-            );
-          }),
-
-          const SizedBox(height: 20),
-
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                  ),
-                  onPressed: () {
-                    // Perbaikan Navigasi dengan GetX
-                    Get.to(() => const TabunganForm());
-                  },
-                  icon: const Icon(Icons.add),
-                  label: const Text('Target Baru'),
+                child: const Icon(Icons.add, color: AppTheme.info),
+              ),
+              title: const Text('Isi Tabungan'),
+              onTap: () {
+                Get.back();
+                Get.dialog(DialogIsiTabungan(initialTabungan: tabungan));
+              },
+            ),
+            ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppTheme.warning.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.edit, color: AppTheme.warning),
+              ),
+              title: const Text('Edit Target'),
+              onTap: () {
+                Get.back();
+                Get.dialog(DialogEditTabungan(tabungan: tabungan));
+              },
+            ),
+            ListTile(
+              leading: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.error.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.delete,
+                  color: Theme.of(context).colorScheme.error,
                 ),
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.secondary,
-                    foregroundColor: Theme.of(context).colorScheme.onSecondary,
-                  ),
-                  onPressed: () async {
-                    final result = await Get.to(() => const IsiTabunganForm());
-
-                    if (result != null && result is RiwayatTabungan) {
-                      riwayatList.add(result);
-                      final transaksiController =
-                          Get.find<KontrolerTransaksi>();
-                      final transaksi = ModelTransaksi(
-                        id: '',
-                        uid: '',
-                        description:
-                            'Menabung: ${result.nominal}',
-                        amount: result.nominal.toDouble(),
-                        category: 'Tabungan',
-                        type: 'expense',
-                        date: result.tanggal,
-                        isExpense: true,
-                      );
-
-                      await transaksiController.addTransaction(transaksi);
-                    }
+              title: const Text('Hapus Tabungan'),
+              onTap: () {
+                Get.back();
+                Get.defaultDialog(
+                  title: 'Hapus Tabungan',
+                  middleText: 'Apakah Anda yakin ingin menghapus tabungan ini?',
+                  textConfirm: 'Ya, Hapus',
+                  textCancel: 'Batal',
+                  confirmTextColor: Theme.of(context).colorScheme.onPrimary,
+                  buttonColor: Theme.of(context).colorScheme.error,
+                  onConfirm: () {
+                    Get.find<KontrolerTabungan>().hapusTabungan(tabungan.id);
+                    Get.back();
                   },
-                  icon: const Icon(Icons.savings),
-                  label: const Text('Nabung'),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 20),
-          const Text(
-            'Riwayat Transaksi',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 10),
-          Obx(() {
-            if (riwayatList.isEmpty) {
-              return const Padding(
-                padding: EdgeInsets.symmetric(vertical: 20),
-                child: Center(child: Text('Belum ada riwayat transaksi')),
-              );
-            }
-
-            return Column(
-              children: riwayatList.reversed.map((e) {
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: Theme.of(
-                        context,
-                      ).colorScheme.primary.withOpacity(0.1),
-                      child: Icon(
-                        Icons.arrow_upward,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                    ),
-                    title: Text(
-                      'Rp ${e.nominal.toInt()}',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text(
-                      '${e.catatan}\n${e.tanggal.toString().split(' ')[0]}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Theme.of(context).textTheme.bodySmall?.color,
-                      ),
-                    ),
-                    isThreeLine: true,
-                    trailing: IconButton(
-                      icon: Icon(
-                        Icons.delete,
-                        color: Theme.of(context).colorScheme.error,
-                      ),
-                      onPressed: () {
-                        riwayatList.remove(e);
-                      },
-                    ),
-                  ),
                 );
-              }).toList(),
-            );
-          }),
-          const SizedBox(height: 30),
-        ],
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

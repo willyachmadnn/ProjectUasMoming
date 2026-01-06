@@ -49,7 +49,7 @@ class KontrolPaginasi extends StatelessWidget {
                   () => Text(
                     '${controller.currentPage.value}',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: Theme.of(context).colorScheme.onPrimary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),

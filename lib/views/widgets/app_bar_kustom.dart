@@ -1,35 +1,56 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controllers/aplikasi_controllers.dart';
 import '../../controllers/autentikasi_controllers.dart';
+import '../../controllers/akun_controllers.dart';
 
 class AppBarKustom extends StatelessWidget implements PreferredSizeWidget {
   final KontrolerAplikasi appCtrl = Get.find<KontrolerAplikasi>();
   final KontrolerAutentikasi authCtrl = Get.find<KontrolerAutentikasi>();
+  final KontrolerAkun akunCtrl = Get.put(KontrolerAkun());
+  final String? judul;
 
-  AppBarKustom({super.key});
+  AppBarKustom({super.key, this.judul});
 
   @override
-  Size get preferredSize => Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 
   @override
   Widget build(BuildContext context) {
+    final canPop = Navigator.of(context).canPop();
+
     return AppBar(
-      leading: Builder(
+      title: judul != null
+          ? Text(
+        judul!,
+        style: TextStyle(
+          color: Theme.of(context).textTheme.titleLarge?.color,
+          fontWeight: FontWeight.bold,
+        ),
+      )
+          : null,
+      leading: canPop
+          ? IconButton(
+        icon: const Icon(Icons.arrow_back),
+        onPressed: () => Get.back(),
+        tooltip: 'Kembali',
+      )
+          : Builder(
         builder: (context) => IconButton(
-          icon: Icon(Icons.menu),
+          icon: const Icon(Icons.menu),
           onPressed: () {
             Scaffold.of(context).openDrawer();
           },
           tooltip: 'Menu',
         ),
       ),
-      centerTitle: false, 
+      centerTitle: false,
       actions: [
         Obx(
-          () => IconButton(
+              () => IconButton(
             icon: AnimatedSwitcher(
-              duration: Duration(milliseconds: 300),
+              duration: const Duration(milliseconds: 300),
               transitionBuilder: (child, animation) {
                 return RotationTransition(turns: animation, child: child);
               },
@@ -42,39 +63,69 @@ class AppBarKustom extends StatelessWidget implements PreferredSizeWidget {
             tooltip: appCtrl.isDarkMode.value ? 'Mode Terang' : 'Mode Gelap',
           ),
         ),
-        SizedBox(width: 8),
-
+        const SizedBox(width: 8),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
           child: Row(
             children: [
-              Obx(
-                () => Text(
-                  authCtrl.userName.value,
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                ),
-              ),
-              SizedBox(width: 8),
-              CircleAvatar(
-                radius: 16,
-                backgroundColor: Theme.of(context).dividerColor,
-                child: Icon(Icons.person, size: 20, color: Theme.of(context).iconTheme.color),
-              ),
+              const SizedBox(width: 8),
+              Obx(() {
+                final String path = akunCtrl.photoUrl.value;
+                final ImageProvider? image = _getProfileImage(path);
+
+                return GestureDetector(
+                  onTap: () {
+                    appCtrl.changeMenu(4);
+                    Get.toNamed('/akun');
+                  },
+                  child: CircleAvatar(
+                    radius: 16,
+                    backgroundColor: Theme.of(context).dividerColor,
+                    backgroundImage: image,
+                    child: image == null
+                        ? Icon(
+                      Icons.person,
+                      size: 20,
+                      color: Theme.of(context).iconTheme.color,
+                    )
+                        : null,
+                  ),
+                );
+              }),
             ],
           ),
         ),
-        SizedBox(width: 8),
-
+        const SizedBox(width: 8),
         IconButton(
-          icon: Icon(Icons.settings),
+          icon: const Icon(Icons.settings),
           onPressed: () {
             appCtrl.changeMenu(4);
             Get.toNamed('/akun');
           },
           tooltip: 'Pengaturan',
         ),
-        SizedBox(width: 8),
+        const SizedBox(width: 8),
       ],
     );
+  }
+
+  ImageProvider? _getProfileImage(String path) {
+    if (path.isEmpty) {
+      return null;
+    }
+
+    if (path.startsWith('http')) {
+      return NetworkImage(path);
+    } else {
+      try {
+        final file = File(path);
+        if (file.existsSync()) {
+          return FileImage(file);
+        }
+      } catch (e) {
+        return null;
+      }
+      return null;
+    }
   }
 }

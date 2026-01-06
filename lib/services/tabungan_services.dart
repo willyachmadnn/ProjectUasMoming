@@ -14,12 +14,14 @@ class LayananTabungan {
     }
     return _firestore.collection('users').doc(_uid).collection('tabungan');
   }
+
   Stream<List<ModelTabungan>> getTabunganStream() {
-    return _tabunganRef
-        .orderBy('createdAt', descending: true)
-        .snapshots()
-        .map((snapshot) {
-      return snapshot.docs.map((doc) => ModelTabungan.fromFirestore(doc)).toList();
+    return _tabunganRef.orderBy('createdAt', descending: true).snapshots().map((
+      snapshot,
+    ) {
+      return snapshot.docs
+          .map((doc) => ModelTabungan.fromFirestore(doc))
+          .toList();
     });
   }
 
@@ -36,8 +38,24 @@ class LayananTabungan {
   }
 
   Future<void> updateNominal(String id, double nominalBaru) async {
-    await _tabunganRef.doc(id).update({
-      'currentAmount': nominalBaru,
+    await _tabunganRef.doc(id).update({'currentAmount': nominalBaru});
+  }
+
+  Future<void> catatTransaksiTabungan({
+    required String description,
+    required double amount,
+  }) async {
+    if (_uid == null) return;
+
+    await _firestore.collection('transactions').add({
+      'uid': _uid,
+      'description': description,
+      'amount': amount,
+      'category': 'Tabungan',
+      'type': 'expense',
+      'isExpense': true,
+      'date': Timestamp.now(),
+      'createdAt': FieldValue.serverTimestamp(),
     });
   }
 }

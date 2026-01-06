@@ -1,3 +1,4 @@
+import 'package:financial/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -6,6 +7,7 @@ import '../widgets/drawer_kustom.dart';
 import '../widgets/app_bar_kustom.dart';
 import 'widgets/grafik_donat.dart';
 import 'widgets/grafik_line.dart';
+import 'widgets/grafik_batang_tabungan.dart';
 
 class TampilanBeranda extends StatelessWidget {
   const TampilanBeranda({super.key});
@@ -48,16 +50,16 @@ class TampilanBeranda extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Text(
+                            Text(
                               'Total Saldo',
                               style: TextStyle(
-                                color: Colors.grey,
+                                color: Theme.of(context).hintColor,
                                 fontSize: 12,
                               ),
                             ),
                             const SizedBox(height: 8),
                             Obx(
-                                  () => Text(
+                              () => Text(
                                 fullCurrencyFormat.format(
                                   controller.totalBalance.value,
                                 ),
@@ -70,17 +72,19 @@ class TampilanBeranda extends StatelessWidget {
                             ),
                             const SizedBox(height: 12),
                             Obx(
-                                  () => Container(
+                              () => Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 8,
                                   vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
                                   color:
-                                  (controller.isTrendUp.value
-                                      ? Colors.green
-                                      : Colors.red)
-                                      .withOpacity(0.1),
+                                      (controller.isTrendUp.value
+                                              ? AppTheme.success
+                                              : Theme.of(
+                                                  context,
+                                                ).colorScheme.error)
+                                          .withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Row(
@@ -91,8 +95,8 @@ class TampilanBeranda extends StatelessWidget {
                                           ? Icons.arrow_outward
                                           : Icons.arrow_downward,
                                       color: controller.isTrendUp.value
-                                          ? Colors.green
-                                          : Colors.red,
+                                          ? AppTheme.success
+                                          : Theme.of(context).colorScheme.error,
                                       size: 12,
                                     ),
                                     const SizedBox(width: 4),
@@ -100,8 +104,10 @@ class TampilanBeranda extends StatelessWidget {
                                       "${controller.trendPercentage.value.toStringAsFixed(1)}% bulan lalu",
                                       style: TextStyle(
                                         color: controller.isTrendUp.value
-                                            ? Colors.green
-                                            : Colors.red,
+                                            ? AppTheme.success
+                                            : Theme.of(
+                                                context,
+                                              ).colorScheme.error,
                                         fontSize: 10,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -124,7 +130,7 @@ class TampilanBeranda extends StatelessWidget {
                               context,
                               "Pemasukan",
                               controller.totalIncome,
-                              Colors.blue,
+                              AppTheme.info,
                             ),
                           ),
                           const SizedBox(height: 12),
@@ -133,7 +139,7 @@ class TampilanBeranda extends StatelessWidget {
                               context,
                               "Pengeluaran",
                               controller.totalExpense,
-                              Colors.red,
+                              AppTheme.error,
                             ),
                           ),
                         ],
@@ -142,7 +148,7 @@ class TampilanBeranda extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 15),
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -156,57 +162,29 @@ class TampilanBeranda extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text(
-                          "Total Tabungan",
+                          "Tabungan",
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
                           ),
                         ),
-                        Icon(Icons.savings, color: Colors.amber[700], size: 20),
+                        Icon(
+                          Icons.savings,
+                          color: Theme.of(
+                            context,
+                          ).hintColor.withValues(alpha: 0.3),
+                          size: 20,
+                        ),
                       ],
                     ),
                     const SizedBox(height: 15),
                     Obx(() {
-                      double current = controller.totalSavingsCurrent.value;
-                      double target = controller.totalSavingsTarget.value;
-                      double percentage = target == 0
-                          ? 0
-                          : (current / target).clamp(0.0, 1.0);
-
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: LinearProgressIndicator(
-                              value: percentage,
-                              minHeight: 15,
-                              backgroundColor: Colors.grey.withOpacity(0.1),
-                              color: Colors.blueAccent,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                '${fullCurrencyFormat.format(current)} terkumpul',
-                                style: const TextStyle(
-                                  color: Colors.black87,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              Text(
-                                'Target: ${NumberFormat.compactCurrency(locale: 'id_ID', symbol: 'Rp', decimalDigits: 0).format(target)}',
-                                style: const TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 11,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                      if (controller.savingsGoals.isEmpty) {
+                        return const Text("Belum ada target tabungan");
+                      }
+                      return const SizedBox(
+                        height: 50,
+                        child: GrafikBatangTabungan(),
                       );
                     }),
                   ],
@@ -216,28 +194,11 @@ class TampilanBeranda extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: SizedBox(
-                      height: 200,
-                      child: Obx(
-                            () => GrafikDonat(
-                          data: controller.categoryStats,
-                          total: controller.totalExpense.value,
-                        ),
-                      ),
-                    ),
+                    child: SizedBox(height: 200, child: const GrafikDonat()),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: SizedBox(
-                      height: 200,
-                      child: Obx(
-                            () => GrafikLine(
-                          incomeSpots: controller.incomeSpots,
-                          expenseSpots: controller.expenseSpots,
-                          maxY: controller.maxChartY.value,
-                        ),
-                      ),
-                    ),
+                    child: SizedBox(height: 200, child: const GrafikLine()),
                   ),
                 ],
               ),
@@ -270,15 +231,22 @@ class TampilanBeranda extends StatelessWidget {
                       height: 75,
                       child: Obx(() {
                         if (controller.upcomingSchedules.isEmpty) {
-                          return const Center(
+                          return Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.check_circle_outline,
-                                    size: 40, color: Colors.grey),
-                                SizedBox(height: 8),
-                                Text("Tidak ada tagihan mendatang",
-                                    style: TextStyle(color: Colors.grey)),
+                                Icon(
+                                  Icons.check_circle_outline,
+                                  size: 40,
+                                  color: Theme.of(context).disabledColor,
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  "Tidak ada tagihan mendatang",
+                                  style: TextStyle(
+                                    color: Theme.of(context).disabledColor,
+                                  ),
+                                ),
                               ],
                             ),
                           );
@@ -288,12 +256,12 @@ class TampilanBeranda extends StatelessWidget {
                           physics: const BouncingScrollPhysics(),
                           itemCount: controller.upcomingSchedules.length,
                           separatorBuilder: (context, index) =>
-                          const Divider(height: 1),
+                              const Divider(height: 1),
                           itemBuilder: (context, index) {
                             final item = controller.upcomingSchedules[index];
                             final isOverdue =
                                 item.dueDate.isBefore(DateTime.now()) &&
-                                    !item.isPaid;
+                                !item.isPaid;
 
                             return ListTile(
                               contentPadding: EdgeInsets.zero,
@@ -301,13 +269,18 @@ class TampilanBeranda extends StatelessWidget {
                                 padding: const EdgeInsets.all(10),
                                 decoration: BoxDecoration(
                                   color: isOverdue
-                                      ? Colors.red.withOpacity(0.1)
-                                      : Colors.blue.withOpacity(0.1),
+                                      ? Theme.of(context).colorScheme.error
+                                            .withValues(alpha: 0.1)
+                                      : Theme.of(
+                                          context,
+                                        ).primaryColor.withValues(alpha: 0.1),
                                   shape: BoxShape.circle,
                                 ),
                                 child: Icon(
                                   Icons.calendar_today,
-                                  color: isOverdue ? Colors.red : Colors.blue,
+                                  color: isOverdue
+                                      ? Theme.of(context).colorScheme.error
+                                      : Theme.of(context).primaryColor,
                                   size: 20,
                                 ),
                               ),
@@ -319,10 +292,14 @@ class TampilanBeranda extends StatelessWidget {
                                 ),
                               ),
                               subtitle: Text(
-                                DateFormat('EEEE, dd MMM yyyy', 'id_ID')
-                                    .format(item.dueDate),
+                                DateFormat(
+                                  'EEEE, dd MMM yyyy',
+                                  'id_ID',
+                                ).format(item.dueDate),
                                 style: TextStyle(
-                                  color: isOverdue ? Colors.red : Colors.grey,
+                                  color: isOverdue
+                                      ? Theme.of(context).colorScheme.error
+                                      : Theme.of(context).hintColor,
                                   fontSize: 12,
                                   fontWeight: isOverdue
                                       ? FontWeight.bold
@@ -345,7 +322,7 @@ class TampilanBeranda extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 30),
+              const SizedBox(height: 10),
             ],
           ),
         ),
@@ -354,11 +331,11 @@ class TampilanBeranda extends StatelessWidget {
   }
 
   Widget _buildSmallCard(
-      BuildContext context,
-      String title,
-      RxDouble value,
-      Color color,
-      ) {
+    BuildContext context,
+    String title,
+    RxDouble value,
+    Color color,
+  ) {
     final fullFormat = NumberFormat.currency(
       locale: 'id_ID',
       symbol: 'Rp ',
@@ -385,12 +362,9 @@ class TampilanBeranda extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Obx(
-                () => Text(
+            () => Text(
               fullFormat.format(value.value),
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),

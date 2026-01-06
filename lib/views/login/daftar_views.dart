@@ -15,7 +15,7 @@ class TampilanDaftar extends StatelessWidget {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
           icon: Icon(
@@ -34,18 +34,13 @@ class TampilanDaftar extends StatelessWidget {
             ),
             padding: const EdgeInsets.all(40),
             decoration: BoxDecoration(
-              color: const Color(0xFFE0E5EC),
+              color: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.white.withValues(alpha: 0.8),
-                  offset: const Offset(-6, -6),
-                  blurRadius: 16,
-                ),
-                BoxShadow(
-                  color: const Color(0xFFA3B1C6).withValues(alpha: 0.5),
-                  offset: const Offset(6, 6),
-                  blurRadius: 16,
+                  color: Theme.of(context).shadowColor.withValues(alpha: 0.05),
+                  offset: const Offset(0, 10),
+                  blurRadius: 30,
                 ),
               ],
             ),
@@ -102,8 +97,10 @@ class TampilanDaftar extends StatelessWidget {
                           height: 50,
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF34495E),
-                              foregroundColor: Colors.white,
+                              backgroundColor: Theme.of(context).primaryColor,
+                              foregroundColor: Theme.of(
+                                context,
+                              ).colorScheme.onPrimary,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
@@ -132,6 +129,7 @@ class TampilanDaftar extends StatelessWidget {
       ),
     );
   }
+
   Widget _buildFloatingLabelTextField(
     BuildContext context, {
     required String label,
@@ -156,7 +154,7 @@ class TampilanDaftar extends StatelessWidget {
         labelStyle: TextStyle(
           color: Theme.of(
             context,
-          ).textTheme.bodyMedium?.color?.withOpacity(0.7),
+          ).textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
           fontSize: 14,
         ),
         floatingLabelStyle: TextStyle(
@@ -173,7 +171,9 @@ class TampilanDaftar extends StatelessWidget {
                 iconSize: 20,
                 icon: Icon(
                   isObscure ? Icons.visibility_off : Icons.visibility,
-                  color: Theme.of(context).iconTheme.color?.withOpacity(0.5),
+                  color: Theme.of(
+                    context,
+                  ).iconTheme.color?.withValues(alpha: 0.5),
                 ),
                 onPressed: onToggleVisibility,
               )
