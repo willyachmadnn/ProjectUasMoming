@@ -32,7 +32,7 @@ class _DialogExportState extends State<DialogExport> {
                 Expanded(
                   flex: 3,
                   child: DropdownButtonFormField<int>(
-                    value: selectedDate.month,
+                    initialValue: selectedDate.month,
                     isExpanded: true,
                     items: List.generate(12, (index) {
                       return DropdownMenuItem(
@@ -69,7 +69,7 @@ class _DialogExportState extends State<DialogExport> {
                 Expanded(
                   flex: 2,
                   child: DropdownButtonFormField<int>(
-                    value: selectedDate.year,
+                    initialValue: selectedDate.year,
                     isExpanded: true,
                     items: List.generate(5, (index) {
                       final year = DateTime.now().year - 2 + index;

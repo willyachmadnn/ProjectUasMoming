@@ -166,7 +166,7 @@ class KontrolerAkun extends GetxController {
   }
 
   PdfColor _toPdfColor(Color color) {
-    return PdfColor.fromInt(color.value);
+    return PdfColor(color.r, color.g, color.b, color.a);
   }
 
   Future<void> generatePdf(DateTime selectedDate) async {
@@ -192,9 +192,9 @@ class KontrolerAkun extends GetxController {
           .collection('transactions')
           .where('uid', isEqualTo: uid)
           .where(
-        'date',
-        isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth),
-      )
+            'date',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(startOfMonth),
+          )
           .where('date', isLessThanOrEqualTo: Timestamp.fromDate(endOfMonth))
           .get();
 
@@ -468,7 +468,7 @@ class KontrolerAkun extends GetxController {
       await Printing.sharePdf(
         bytes: bytes,
         filename:
-        'Laporan_Keuangan_${DateFormat('MMMM_yyyy', 'id_ID').format(selectedDate)}.pdf',
+            'Laporan_Keuangan_${DateFormat('MMMM_yyyy', 'id_ID').format(selectedDate)}.pdf',
       );
     } catch (e) {
       isLoading.value = false;
@@ -477,11 +477,11 @@ class KontrolerAkun extends GetxController {
   }
 
   pw.Widget _buildPdfCard(
-      String title,
-      String value,
-      PdfColor color, {
-        bool isDark = false,
-      }) {
+    String title,
+    String value,
+    PdfColor color, {
+    bool isDark = false,
+  }) {
     return pw.Expanded(
       child: pw.Container(
         margin: const pw.EdgeInsets.symmetric(horizontal: 4),
@@ -588,18 +588,91 @@ class KontrolerAkun extends GetxController {
 
     Get.defaultDialog(
       title: 'Hapus Akun?',
-      middleText: 'Akun Anda akan dihapus permanen.',
+      middleText:
+          'PERINGATAN: Tindakan ini akan menghapus permanen:\n- Semua Data Transaksi\n- Jadwal Pembayaran\n- Tabungan\n- Profil Pengguna\n\nTindakan ini TIDAK DAPAT dibatalkan.',
       textConfirm: 'Hapus Permanen',
       textCancel: 'Batal',
       confirmTextColor: AppTheme.light.colorScheme.onError,
       buttonColor: AppTheme.error,
       onConfirm: () async {
-        Get.back();
-        final prefs = await SharedPreferences.getInstance();
+        Get.back(); // Tutup dialog
+        isLoading.value = true;
 
-        await prefs.remove('local_profile_image_${user.uid}');
+        try {
+          final uid = user.uid;
 
-        _authCtrl.logout();
+          // Helper function untuk menghapus batch
+          Future<void> deleteQueryBatch(Query query) async {
+            final snapshot = await query.get();
+            final batchSize = 500;
+            WriteBatch batch = _firestore.batch();
+            int operationCount = 0;
+
+            for (var doc in snapshot.docs) {
+              batch.delete(doc.reference);
+              operationCount++;
+
+              if (operationCount >= batchSize) {
+                await batch.commit();
+                batch = _firestore.batch();
+                operationCount = 0;
+              }
+            }
+
+            if (operationCount > 0) {
+              await batch.commit();
+            }
+          }
+
+          // 1. Hapus Transaksi
+          await deleteQueryBatch(
+            _firestore.collection('transactions').where('uid', isEqualTo: uid),
+          );
+
+          // 2. Hapus Jadwal Pembayaran
+          await deleteQueryBatch(
+            _firestore
+                .collection('payment_schedules')
+                .where('uid', isEqualTo: uid),
+          );
+
+          // 3. Hapus Tabungan (Subcollection)
+          await deleteQueryBatch(
+            _firestore.collection('users').doc(uid).collection('tabungan'),
+          );
+
+          // 4. Hapus Profil User di Firestore
+          await _firestore.collection('users').doc(uid).delete();
+
+          // 5. Hapus Foto Lokal (jika ada)
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.remove('local_profile_image_${user.uid}');
+
+          // 6. Hapus Akun Firebase Auth
+          await user.delete();
+
+          // 7. Logout & Redirect
+          // Logout manual tanpa memanggil _authCtrl.logout() karena user sudah terhapus
+          // dan kita ingin menghindari error saat cleanup
+          await _authCtrl.logout();
+
+          SnackbarKustom.sukses('Berhasil', 'Akun Anda telah dihapus permanen');
+        } on FirebaseAuthException catch (e) {
+          if (e.code == 'requires-recent-login') {
+            SnackbarKustom.error(
+              'Keamanan',
+              'Silakan login ulang sebelum menghapus akun.',
+            );
+            // Opsional: Paksa logout agar user login ulang
+            await _authCtrl.logout();
+          } else {
+            SnackbarKustom.error('Gagal', 'Gagal menghapus akun: ${e.message}');
+          }
+        } catch (e) {
+          SnackbarKustom.error('Gagal', 'Terjadi kesalahan: $e');
+        } finally {
+          isLoading.value = false;
+        }
       },
     );
   }

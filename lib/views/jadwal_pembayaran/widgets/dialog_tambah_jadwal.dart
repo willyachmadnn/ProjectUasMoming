@@ -85,7 +85,7 @@ class _DialogTambahJadwalState extends State<DialogTambahJadwal> {
                 ),
                 const SizedBox(height: 20),
                 DropdownButtonFormField<String>(
-                  value: _selectedCategory,
+                  initialValue: _selectedCategory,
                   decoration: InputDecoration(
                     labelText: 'Kategori',
                     border: OutlineInputBorder(

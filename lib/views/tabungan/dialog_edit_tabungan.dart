@@ -79,7 +79,6 @@ class _DialogEditTabunganState extends State<DialogEditTabungan> {
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  prefixIcon: const Icon(Icons.attach_money),
                 ),
                 validator: (value) =>
                     value == null || value.isEmpty ? 'Wajib diisi' : null,

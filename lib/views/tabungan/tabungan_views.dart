@@ -13,7 +13,6 @@ import 'tabungan_card.dart';
 import 'tabungan_form.dart';
 import 'dialog_isi_tabungan.dart';
 import 'dialog_edit_tabungan.dart';
-import 'package:financial/views/dashboard/widgets/grafik_batang_tabungan.dart';
 
 class TampilanTabungan extends StatelessWidget {
   const TampilanTabungan({super.key});

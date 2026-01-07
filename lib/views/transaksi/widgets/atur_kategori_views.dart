@@ -241,7 +241,7 @@ class _DialogFormKategoriState extends State<DialogFormKategori> {
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
-                  value: _type,
+                  initialValue: _type,
                   decoration: InputDecoration(
                     labelText: 'Tipe',
                     border: OutlineInputBorder(

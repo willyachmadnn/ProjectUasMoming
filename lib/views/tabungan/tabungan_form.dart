@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../../controllers/tabungan_controllers.dart';
+import '../../utils/currency_formatter.dart';
 
 class DialogTambahTabungan extends StatefulWidget {
   const DialogTambahTabungan({super.key});
@@ -52,6 +54,10 @@ class _DialogTambahTabunganState extends State<DialogTambahTabungan> {
                 TextFormField(
                   controller: _targetController,
                   keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    CurrencyInputFormatter(),
+                  ],
                   decoration: InputDecoration(
                     labelText: 'Nominal Target',
                     prefixText: 'Rp ',
