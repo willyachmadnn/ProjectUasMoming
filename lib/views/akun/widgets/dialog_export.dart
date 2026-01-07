@@ -27,12 +27,13 @@ class _DialogExportState extends State<DialogExport> {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
-
             Row(
               children: [
                 Expanded(
+                  flex: 3,
                   child: DropdownButtonFormField<int>(
                     value: selectedDate.month,
+                    isExpanded: true,
                     items: List.generate(12, (index) {
                       return DropdownMenuItem(
                         value: index + 1,
@@ -41,6 +42,7 @@ class _DialogExportState extends State<DialogExport> {
                             'MMMM',
                             'id_ID',
                           ).format(DateTime(2024, index + 1)),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       );
                     }),
@@ -53,16 +55,22 @@ class _DialogExportState extends State<DialogExport> {
                     },
                     decoration: InputDecoration(
                       labelText: 'Bulan',
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 4,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 12),
                 Expanded(
+                  flex: 2,
                   child: DropdownButtonFormField<int>(
                     value: selectedDate.year,
+                    isExpanded: true,
                     items: List.generate(5, (index) {
                       final year = DateTime.now().year - 2 + index;
                       return DropdownMenuItem(
@@ -79,6 +87,10 @@ class _DialogExportState extends State<DialogExport> {
                     },
                     decoration: InputDecoration(
                       labelText: 'Tahun',
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 4,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
